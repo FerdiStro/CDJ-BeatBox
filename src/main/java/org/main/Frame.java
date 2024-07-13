@@ -4,14 +4,14 @@ import org.deepsymmetry.beatlink.data.*;
 import org.main.audio.LoadLibrary;
 import org.main.audio.PlayerGrid;
 import org.main.audio.playegrid.Slot;
+import org.main.audio.playegrid.SlotAudio;
 
-import javax.sound.sampled.Clip;
-import javax.sound.sampled.LineEvent;
 import javax.swing.*;
+import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.TreePath;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.Locale;
@@ -19,8 +19,8 @@ import java.util.Map;
 
 public  class Frame extends JFrame {
 
-    private final static int screenWidth =  1000;
-    private final static int screenHeight =  600;
+    private final static int screenWidth =  1200;
+    private final static int screenHeight =  700;
 
     private final int xBeat     =  15;
     private final int yBeat     =  10;
@@ -44,6 +44,11 @@ public  class Frame extends JFrame {
     private boolean playOnBeat = false;
     private int     checkBeat = 0 ;
 
+    private final int libraryX = 680 + playGridSize + 20;
+    private final int libraryY = playGridY;
+    private final int libraryWidth = 400;
+    private final int libraryHeight = 300;
+
     private int masterDevicdId = 0;
 
     private JLabel jLabel;
@@ -54,9 +59,15 @@ public  class Frame extends JFrame {
 
     private boolean setupString = true;
 
+
+    private LoadLibrary soundLibrary = LoadLibrary.getInstance();
+
     private  Frame(){
         PlayerGrid playerGrid = PlayerGrid.getInstance();
 
+        JScrollPane folderView = soundLibrary.getFolderView();
+        folderView.setBounds(libraryX, libraryY, libraryWidth, libraryHeight);
+        add(folderView);
 
         jLabel =  new JLabel() {
             protected void paintComponent(Graphics g) {
@@ -144,6 +155,14 @@ public  class Frame extends JFrame {
                     g2d.fillRect(x   , playGridY + 4,  playGridSize, playGridSize);
 
 
+                    //todo remove sound, better looking and func
+                    for(int j = 0; j  != slot.getSelectedSounds().size(); j++){
+                        g2d.drawString(slot.getSelectedSounds().get(j).getName()  , x  , (playGridY  + playGridSize ) +  20  * (j+1) + 20);
+
+                    }
+
+
+
 
 
 
@@ -159,11 +178,14 @@ public  class Frame extends JFrame {
                     }
 
                     if(playerGridCounterBeat == tempI  && playOnBeat && slot.isActive()){
-
                         slot.play();
                     }
-
                 }
+                g2d.setColor(Color.BLACK);
+
+                g2d.fillRect(libraryX, libraryY, libraryWidth, libraryHeight);
+
+
 
             }
         };
@@ -181,11 +203,12 @@ public  class Frame extends JFrame {
 
                     Rectangle rect = new Rectangle(x + 2, playGridY, playGridSize, playGridSize);
                     if (rect.contains(mouseX, mouseY)) {
-                        slot.toggleActive();
+                        slot.addSelectedSound(soundLibrary.getSelectedSound());
                         repaint();
                         break;
                     }
                 }
+
             }
         });
 
@@ -193,7 +216,6 @@ public  class Frame extends JFrame {
 
 
         jLabel.setSize(screenWidth, screenHeight);
-
         add(jLabel);
 
 
