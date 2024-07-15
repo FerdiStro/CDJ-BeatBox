@@ -23,22 +23,31 @@ public class SlotAudio {
         this.volume = volume;
     }
 
+    private boolean isPlaying = true;
+
+   //todo: add dynamic audio
     public void play(){
         try {
-            AudioInputStream audioStream = AudioSystem.getAudioInputStream(audioFile);
-            AudioFormat format = audioStream.getFormat();
-            byte[] audioBytes = audioStream.readAllBytes();
+            if(isPlaying){
+                this.isPlaying = false;
+                AudioInputStream audioStream = AudioSystem.getAudioInputStream(audioFile);
+                AudioFormat format = audioStream.getFormat();
+                byte[] audioBytes = audioStream.readAllBytes();
 
-            adjustVolume(audioBytes, format, volume);
+                adjustVolume(audioBytes, format, volume);
 
-            Clip clip = AudioSystem.getClip();
-            clip.open(format, audioBytes, 0, audioBytes.length);
-            clip.start();
-            clip.addLineListener(event -> {
-                if (event.getType() == LineEvent.Type.STOP) {
-                    clip.close();
-                }
-            });
+
+                Clip clip = AudioSystem.getClip();
+                clip.open(format, audioBytes, 0, audioBytes.length);
+                clip.start();
+                clip.addLineListener(event -> {
+                    if (event.getType() == LineEvent.Type.STOP) {
+                        clip.close();
+                        isPlaying = true;
+                    }
+                });
+
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }

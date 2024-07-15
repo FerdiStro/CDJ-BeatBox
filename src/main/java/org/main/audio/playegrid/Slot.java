@@ -26,6 +26,8 @@ public class Slot implements ChangeListener {
 
     private int x, y;
 
+
+    //todo: connect volumeSlider to  MINILAB MIDI keyboard
     public void drawVolumeSlider(Graphics2D g2d, int x, int y) {
         this.x =  x;
         this.y =  y;
@@ -45,6 +47,7 @@ public class Slot implements ChangeListener {
             draggingSlider = true;
         }
     }
+
     public void mouseDragged(int mouseY) {
         if (draggingSlider) {
             double percent = (double) (mouseY - y) / (VOLUME_SLIDER_HEIGHT - sliderHeight);
@@ -60,6 +63,8 @@ public class Slot implements ChangeListener {
     }
 
     public void addSelectedSound(SlotAudio audio){
+        this.active = true;
+
         boolean contains  = false;
         for(SlotAudio name : selectedSounds){
             if(name.getName().equals(audio.getName())){
