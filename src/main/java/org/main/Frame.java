@@ -12,6 +12,7 @@ import javax.swing.tree.TreePath;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.event.MouseMotionAdapter;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.Locale;
@@ -59,6 +60,7 @@ public  class Frame extends JFrame {
 
     private boolean setupString = true;
 
+//    private JSlider volumeSlider = new JSlider(JSlider.VERTICAL, 0, 100, 50);
 
     private LoadLibrary soundLibrary = LoadLibrary.getInstance();
 
@@ -68,6 +70,7 @@ public  class Frame extends JFrame {
         JScrollPane folderView = soundLibrary.getFolderView();
         folderView.setBounds(libraryX, libraryY, libraryWidth, libraryHeight);
         add(folderView);
+
 
         jLabel =  new JLabel() {
             protected void paintComponent(Graphics g) {
@@ -139,7 +142,12 @@ public  class Frame extends JFrame {
                 }
                 playOnBeat =  false;
                 for(int i = 0 ;  i != playerGrid.getSlots().length; i++){
+
+
+
+
                     Slot slot = playerGrid.getSlots()[i];
+
                     int tempI =  i  + 1;
 
                     int x  = playGridX * tempI +  (playGridSize * tempI - playGridSize );
@@ -147,24 +155,12 @@ public  class Frame extends JFrame {
 
                     if(slot.isActive()){
                         g2d.setColor(Color.RED);
-
                     }else{
                         g2d.setColor(Color.BLACK);
                     }
+
                     g2d.drawString("" + tempI, x, playGridY);
                     g2d.fillRect(x   , playGridY + 4,  playGridSize, playGridSize);
-
-
-                    //todo remove sound, better looking and func
-                    for(int j = 0; j  != slot.getSelectedSounds().size(); j++){
-                        g2d.drawString(slot.getSelectedSounds().get(j).getName()  , x  , (playGridY  + playGridSize ) +  20  * (j+1) + 20);
-
-                    }
-
-
-
-
-
 
                     if(playerGridCounterBeat == tempI ){
                         g2d.setColor(Color.ORANGE);
@@ -180,8 +176,26 @@ public  class Frame extends JFrame {
                     if(playerGridCounterBeat == tempI  && playOnBeat && slot.isActive()){
                         slot.play();
                     }
+
+                    /*
+                        Volume-Slider
+                     */
+                    slot.drawVolumeSlider(g2d, x ,playGridY +  100 );
+                    g2d.setColor(Color.BLACK);
+
+                    x =  x + 15;
+                    int y = playGridY + playGridSize + 10 + sizeBeat;
+                    g2d.drawString("-  10db", x,    y  + 5);
+                    g2d.drawString("-   0db", x, y +  slot.getVolumeSliderHeight() /2 + 5 );
+                    g2d.drawString("  -10db", x, y +  slot.getVolumeSliderHeight());
+
+                    x =  x - 15;
+                    //todo remove sound, better looking and func
+                    for(int j = 0; j  != slot.getSelectedSounds().size(); j++){
+                        g2d.drawString(slot.getSelectedSounds().get(j).getName()  , x  , (y  + playGridSize ) +  20  * (j+1) + 20);
+                    }
+
                 }
-                g2d.setColor(Color.BLACK);
 
                 g2d.fillRect(libraryX, libraryY, libraryWidth, libraryHeight);
 
@@ -190,9 +204,26 @@ public  class Frame extends JFrame {
             }
         };
 
-        jLabel.addMouseListener(new MouseAdapter() {
+
+
+
+
+
+        jLabel.addMouseListener(new MouseAdapter(){
+            @Override
+            public void mouseReleased(MouseEvent e) {
+                for (Slot slot : playerGrid.getSlots()) {
+                    slot.mouseReleased();
+                }
+                repaint();
+            }
+
             @Override
             public void mousePressed(MouseEvent e) {
+                for (Slot slot : playerGrid.getSlots()) {
+                    slot.mousePressed(e.getX(), e.getY());
+                }
+
                 int mouseX = e.getX();
                 int mouseY = e.getY();
 
@@ -204,22 +235,35 @@ public  class Frame extends JFrame {
                     Rectangle rect = new Rectangle(x + 2, playGridY, playGridSize, playGridSize);
                     if (rect.contains(mouseX, mouseY)) {
                         slot.addSelectedSound(soundLibrary.getSelectedSound());
+//                        slot.toggleActive();
                         repaint();
                         break;
                     }
                 }
-
             }
         });
 
-
+        jLabel.addMouseMotionListener(new MouseMotionAdapter() {
+            public void mouseDragged(MouseEvent e) {
+                for (Slot slot : playerGrid.getSlots()) {
+                    slot.mouseDragged(e.getY());
+                }
+                repaint();
+            }
+        });
 
 
         jLabel.setSize(screenWidth, screenHeight);
         add(jLabel);
 
 
+
+
         setSize(screenWidth,screenHeight);
+        setLayout(null);
+
+
+
         setVisible(true);
     }
 
