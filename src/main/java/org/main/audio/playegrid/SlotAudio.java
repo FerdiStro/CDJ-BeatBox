@@ -1,20 +1,26 @@
 package org.main.audio.playegrid;
 
 
+import org.main.audio.library.TYPE;
+
 import javax.sound.sampled.*;
 import java.io.File;
+import java.lang.reflect.Type;
 import java.util.Arrays;
 import java.util.List;
 
 public class SlotAudio {
+
+    private final TYPE playType;
     private final File audioFile;
     private final String name;
     private float volume = 0.5f;
 
-   public SlotAudio(File audioFile){
+   public SlotAudio(File audioFile, TYPE playType){
        List<String> splitPath = Arrays.stream(audioFile.getPath().split("/")).toList();
        this.name = splitPath.get(splitPath.size()-1);
        this.audioFile = audioFile;
+       this.playType = playType;
    }
 
     public void setVolume(float volume) {
@@ -88,5 +94,9 @@ public class SlotAudio {
 
     public String getName() {
         return name;
+    }
+
+    public TYPE getPlayType() {
+        return playType;
     }
 }
