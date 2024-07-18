@@ -2,7 +2,14 @@ package org.main;
 
 import org.deepsymmetry.beatlink.*;
 import org.deepsymmetry.beatlink.data.*;
+import org.main.midi.MidiColorController;
 
+import javax.sound.midi.*;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 import java.net.SocketException;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -13,8 +20,10 @@ public class Main {
 
 
     public static void main(String[] args) throws SocketException {
+
         final SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss.SSS");
         Frame frame = Frame.getInstance();
+
 
 
         BeatFinder.getInstance().addBeatListener(new BeatListener() {
@@ -78,12 +87,54 @@ public class Main {
             public void run() {
                 updateMetaData();
                 frame.setMetaData(metaData);
+
+
+
             }
         }, 0, 1000);
 
+        try {
+            List<MidiDevice> devicesList = new ArrayList<>();
+
+            for (MidiDevice.Info device : MidiSystem.getMidiDeviceInfo()) {
+                if (device.getName().contains("Arturia MiniLab mkII")) {
+                    devicesList.add(MidiSystem.getMidiDevice(device));
+                }
+            }
+
+//            devicesList.forEach(midiDevice -> {
+//                try {
+//                    midiDevice.open();
+//                } catch (MidiUnavailableException e) {
+//                    throw new RuntimeException(e);
+//                }
+//            });
+
+
+
+
+//                transmitter.setReceiver(new Receiver() {
+//                    @Override
+//                    public void send(MidiMessage message, long timeStamp) {
+//                        if (message instanceof ShortMessage) {
+//                            ShortMessage sm = (ShortMessage) message;
+//                            System.out.println("Command: " + sm.getCommand() + " Channel: " + sm.getChannel() +
+//                                    " Data1: " + sm.getData1() + " Data2: " + sm.getData2());
+//                        }
+//                    }
+//                    @Override
+//                    public void close() {
+//                    }
+//                });
+
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+
+
     }
-
-
     private static  void updateMetaData(){
         MetadataFinder metadataFinder = MetadataFinder.getInstance();
         for(Integer playerNumber : metaData.keySet()){
