@@ -103,7 +103,9 @@ public class LoadLibrary {
         final LibraryKind sound = new LibraryKind(name, false, soundView, TYPE.getType(name));
 
         tree.addMouseListener(new MouseAdapter() {
+
             public void mousePressed(MouseEvent e) {
+                sound.stopRreListen();
                 TreePath path = tree.getPathForLocation(e.getX(), e.getY());
                 if (path != null) {
                     Object node = path.getLastPathComponent();
@@ -111,8 +113,14 @@ public class LoadLibrary {
                         String nodeName = node.toString();
 
                         if (nodeName.contains(".wav")) {
+
                             sound.setSelectedTitel(nodeName);
+                            sound.preListen();
+
+
+
                         }
+
 
                         if (tree.isExpanded(path)) {
                             tree.collapsePath(path);
@@ -157,7 +165,7 @@ public class LoadLibrary {
 
 
 
-    public SlotAudio getSelectedSloutAudio() {
+    public SlotAudio getSelectedSlotAudio() {
                 SlotAudio slotAudio = audioCache.get(Objects.requireNonNull(getSelectedSound()).getSelectedTitel());
                 if (slotAudio == null) {
                     slotAudio = loadSoundInCache();

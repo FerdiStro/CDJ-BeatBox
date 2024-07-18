@@ -5,16 +5,16 @@ import org.main.audio.library.LibraryKind;
 import org.main.audio.library.LoadLibrary;
 import org.main.audio.PlayerGrid;
 import org.main.audio.playegrid.Slot;
+import org.main.midi.MidiColorController;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseMotionAdapter;
+import java.awt.event.*;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.Locale;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 public  class Frame extends JFrame {
 
@@ -50,17 +50,23 @@ public  class Frame extends JFrame {
 
     private int masterDevicdId = 0;
 
-    private JLabel jLabel;
+    private final JLabel jLabel;
+
+    private static Frame INSTANCE;
+
+    private final LoadLibrary soundLibrary = LoadLibrary.getInstance();
+
+    private final MidiColorController midiColorController = MidiColorController.getInstance();
 
     public static Frame getInstance(){
-        return new Frame();
+        if(INSTANCE == null){
+            INSTANCE = new Frame();
+        }
+        return INSTANCE;
     }
 
     private boolean setupString = true;
 
-//    private JSlider volumeSlider = new JSlider(JSlider.VERTICAL, 0, 100, 50);
-
-    private LoadLibrary soundLibrary = LoadLibrary.getInstance();
 
     private  Frame(){
         PlayerGrid playerGrid = PlayerGrid.getInstance();
@@ -120,11 +126,12 @@ public  class Frame extends JFrame {
                             g2d.drawString(playerNumber.toString(), x + metaDataWidth - 20, metaDataY +  20);
                             g2d.setColor(Color.BLACK);
 
-
-                            AlbumArt latestArtFor = ArtFinder.getInstance().getLatestArtFor(playerNumber);
-
-                            g2d.drawImage(latestArtFor.getImage(), x  +  5, metaDataY +  30, 100, 100, null);
-
+                            try {
+                                AlbumArt latestArtFor = ArtFinder.getInstance().getLatestArtFor(playerNumber);
+                                g2d.drawImage(latestArtFor.getImage(), x  +  5, metaDataY +  30, 100, 100, null);
+                            }catch (Exception e){
+                                //ignore some Times picture miss
+                            }
 
 
 
@@ -162,6 +169,7 @@ public  class Frame extends JFrame {
 
                     if(slot.isActive()){
                         g2d.setColor(Color.RED);
+
                     }else{
                         g2d.setColor(Color.BLACK);
                     }
@@ -182,6 +190,8 @@ public  class Frame extends JFrame {
 
                     if(playerGridCounterBeat == tempI  && playOnBeat && slot.isActive()){
                         slot.play();
+                        CompletableFuture<Void> future = midiColorController.switchColorAsync(2, "10");
+
                     }
 
                     /*
@@ -228,20 +238,12 @@ public  class Frame extends JFrame {
                 }
 
 
-
-
-
                 g2d.fillRect(libraryX, libraryY, libraryWidth, libraryHeight);
 
 
 
             }
         };
-
-
-
-
-
 
         jLabel.addMouseListener(new MouseAdapter(){
             @Override
@@ -268,7 +270,8 @@ public  class Frame extends JFrame {
 
                     Rectangle rect = new Rectangle(x + 2, playGridY, playGridSize, playGridSize);
                     if (rect.contains(mouseX, mouseY)) {
-                        slot.addSelectedSound(soundLibrary.getSelectedSloutAudio());
+                        slot.addSelectedSound(soundLibrary.getSelectedSlotAudio());
+                        soundLibrary.getSelectedSound().stopRreListen();
                         repaint();
                         break;
                     }
@@ -296,18 +299,43 @@ public  class Frame extends JFrame {
         });
 
 
+//        jLabel.addKeyListener(new KeyAdapter() {
+//            @Override
+//            public void keyTyped(KeyEvent e) {
+//                System.out.println(e.toString());
+//                super.keyTyped(e);
+//            }
+//
+//            @Override
+//            public void keyPressed(KeyEvent e) {
+//                System.out.println(e.toString());
+//
+//                super.keyPressed(e);
+//            }
+//
+//            @Override
+//            public void keyReleased(KeyEvent e) {
+//                System.out.println(e.toString());
+//
+//                super.keyReleased(e);
+//            }
+//        });
+//
+//        jLabel.setFocusable(true);
+//        jLabel.requestFocusInWindow();
+
         jLabel.setSize(screenWidth, screenHeight);
         add(jLabel);
 
 
 
 
+
+
         setSize(screenWidth,screenHeight);
         setLayout(null);
-
-
-
         setVisible(true);
+
     }
 
     private void setBackground(Graphics2D g2d,int original,  int equal){
