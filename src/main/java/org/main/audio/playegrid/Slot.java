@@ -1,5 +1,7 @@
 package org.main.audio.playegrid;
 
+import org.main.audio.library.TYPE;
+
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import java.awt.*;
@@ -7,6 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Slot implements ChangeListener {
+
     private List<SlotAudio> selectedSounds = new ArrayList<>();
 
     private boolean active = false;
@@ -64,25 +67,32 @@ public class Slot implements ChangeListener {
 
     public void addSelectedSound(SlotAudio audio){
         this.active = true;
-
         boolean contains  = false;
         for(SlotAudio name : selectedSounds){
-            if(name.getName().equals(audio.getName())){
+            if (name.getName().equals(audio.getName())) {
                 contains = true;
+                break;
             }
         }
         if(!contains){
             this.selectedSounds.add(audio);
         }
     }
+
     public void toggleActive(){
         this.active  = !this.active;
     }
 
-
     public void play(){
-        for(SlotAudio audio: selectedSounds){
-            audio.play();
+        try {
+            for(SlotAudio audio: selectedSounds){
+                audio.play();
+                if(audio.getPlayType().equals(TYPE.ONESHOOT)){
+                    this.getSelectedSounds().remove(audio);
+                }
+            }
+        }catch (Exception e){
+            //ignore
         }
     }
 

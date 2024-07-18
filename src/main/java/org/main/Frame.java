@@ -1,14 +1,12 @@
 package org.main;
 
 import org.deepsymmetry.beatlink.data.*;
-import org.main.audio.LoadLibrary;
+import org.main.audio.library.LibraryKind;
+import org.main.audio.library.LoadLibrary;
 import org.main.audio.PlayerGrid;
 import org.main.audio.playegrid.Slot;
-import org.main.audio.playegrid.SlotAudio;
 
 import javax.swing.*;
-import javax.swing.tree.DefaultMutableTreeNode;
-import javax.swing.tree.TreePath;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -67,15 +65,21 @@ public  class Frame extends JFrame {
     private  Frame(){
         PlayerGrid playerGrid = PlayerGrid.getInstance();
 
-        JScrollPane folderView = soundLibrary.getFolderView();
-        folderView.setBounds(libraryX, libraryY, libraryWidth, libraryHeight);
-        add(folderView);
+        for(LibraryKind libraryKind : soundLibrary.getFolderView()){
+            JScrollPane tree = libraryKind.getTree();
+            tree.setBounds(libraryX, libraryY, libraryWidth, libraryHeight);
+            add(tree);
+        }
+
 
 
         jLabel =  new JLabel() {
             protected void paintComponent(Graphics g) {
                 super.paintComponent(g);
                 Graphics2D g2d = (Graphics2D) g;
+
+                soundLibrary.updateVis();
+
 
                 Frame.this.setBackground(g2d, counterBeat, 1);
                 g2d.fillOval(xBeat, yBeat , sizeBeat, sizeBeat);
@@ -120,6 +124,9 @@ public  class Frame extends JFrame {
                             AlbumArt latestArtFor = ArtFinder.getInstance().getLatestArtFor(playerNumber);
 
                             g2d.drawImage(latestArtFor.getImage(), x  +  5, metaDataY +  30, 100, 100, null);
+
+
+
 
                             g2d.setFont(new Font("Arial", Font.PLAIN, 12));
                             DecimalFormat df = new DecimalFormat("#,##0.00");
@@ -180,12 +187,12 @@ public  class Frame extends JFrame {
                     /*
                         Volume-Slider
                      */
-                    slot.drawVolumeSlider(g2d, x ,playGridY +  100 );
+                    slot.drawVolumeSlider(g2d, x ,playGridY +  120 );
                     g2d.setColor(Color.BLACK);
 
                     x =  x + 15;
-                    int y = playGridY + playGridSize + 10 + sizeBeat;
-                    g2d.drawString("-  10db", x,    y  + 5);
+                    int y = playGridY + playGridSize + 30 + sizeBeat;
+                    g2d.drawString("-  10db", x, y  + 5);
                     g2d.drawString("-   0db", x, y +  slot.getVolumeSliderHeight() /2 + 5 );
                     g2d.drawString("  -10db", x, y +  slot.getVolumeSliderHeight());
 
@@ -195,7 +202,34 @@ public  class Frame extends JFrame {
                         g2d.drawString(slot.getSelectedSounds().get(j).getName()  , x  , (y  + playGridSize ) +  20  * (j+1) + 20);
                     }
 
+
+
                 }
+
+
+
+                /*
+                    Sound Library
+                */
+                for(int i = 0; i != soundLibrary.getFolderView().size(); i ++){
+                    LibraryKind libraryKind = soundLibrary.getFolderView().get(i);
+
+                    if(libraryKind.isSelected()) {
+                        g2d.setColor(Color.ORANGE);
+                    }else{
+                        g2d.setColor(Color.WHITE);
+                    }
+
+                    g2d.fillRect(libraryX +  100 * i, libraryY - 20, 100 , 20);
+
+                    g2d.setColor(Color.BLACK);
+                    g2d.drawString(libraryKind.getName(), libraryX + 1  +  100 * i, libraryY - 4 );
+
+                }
+
+
+
+
 
                 g2d.fillRect(libraryX, libraryY, libraryWidth, libraryHeight);
 
@@ -234,12 +268,21 @@ public  class Frame extends JFrame {
 
                     Rectangle rect = new Rectangle(x + 2, playGridY, playGridSize, playGridSize);
                     if (rect.contains(mouseX, mouseY)) {
-                        slot.addSelectedSound(soundLibrary.getSelectedSound());
-//                        slot.toggleActive();
+                        slot.addSelectedSound(soundLibrary.getSelectedSloutAudio());
                         repaint();
                         break;
                     }
                 }
+
+                for(int i = 0; i != soundLibrary.getFolderView().size(); i ++){
+                    Rectangle rect = new Rectangle(libraryX +  100 * i, libraryY - 20, 100 , 20);
+                    if (rect.contains(mouseX, mouseY)){
+                        soundLibrary.setSelectedLibrary(i);
+                        repaint();
+                        break;
+                    }
+                }
+
             }
         });
 
