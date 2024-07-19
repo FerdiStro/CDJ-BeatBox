@@ -1,0 +1,18 @@
+syntax =  "proto3";
+
+package com.card.api.grpc;
+
+option java_multiple_files = true;
+option java_package = "net.devh.boot.grpc.card.service.lib";
+
+service MidiService {
+  rpc activateColor(ActivateColorRequest) returns (ActivateColorResponse) {
+  }
+}
+message ActivateColorRequest{
+  string pad   = 2;
+  string color = 1;
+}
+message ActivateColorResponse{
+  bool ok   = 1;
+}
