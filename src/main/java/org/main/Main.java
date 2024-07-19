@@ -13,6 +13,9 @@ import java.io.InputStreamReader;
 import java.net.SocketException;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 public class Main {
 
@@ -61,8 +64,6 @@ public class Main {
             public void newBeat(Beat beat) {
                 String currentTime = sdf.format(new Date());
 
-
-//                System.out.println("Current time: " + currentTime + ", Beat: " + count);
                 frame.setCounterBeat(count);
                 count = (count % 4) + 1;
                 frame.setPlayerGridCounterBeat(bigCount);
@@ -79,9 +80,6 @@ public class Main {
             throw new IllegalStateException();
         }
 
-
-
-
         new Timer().scheduleAtFixedRate(new TimerTask() {
             @Override
             public void run() {
@@ -93,48 +91,13 @@ public class Main {
             }
         }, 0, 1000);
 
-        try {
-            List<MidiDevice> devicesList = new ArrayList<>();
-
-            for (MidiDevice.Info device : MidiSystem.getMidiDeviceInfo()) {
-                if (device.getName().contains("Arturia MiniLab mkII")) {
-                    devicesList.add(MidiSystem.getMidiDevice(device));
-                }
-            }
-
-//            devicesList.forEach(midiDevice -> {
-//                try {
-//                    midiDevice.open();
-//                } catch (MidiUnavailableException e) {
-//                    throw new RuntimeException(e);
-//                }
-//            });
 
 
-
-
-//                transmitter.setReceiver(new Receiver() {
-//                    @Override
-//                    public void send(MidiMessage message, long timeStamp) {
-//                        if (message instanceof ShortMessage) {
-//                            ShortMessage sm = (ShortMessage) message;
-//                            System.out.println("Command: " + sm.getCommand() + " Channel: " + sm.getChannel() +
-//                                    " Data1: " + sm.getData1() + " Data2: " + sm.getData2());
-//                        }
-//                    }
-//                    @Override
-//                    public void close() {
-//                    }
-//                });
-
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-
+        frame.setVisible(true);
 
     }
+
+
     private static  void updateMetaData(){
         MetadataFinder metadataFinder = MetadataFinder.getInstance();
         for(Integer playerNumber : metaData.keySet()){

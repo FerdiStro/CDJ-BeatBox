@@ -7,16 +7,24 @@ import org.main.audio.PlayerGrid;
 import org.main.audio.playegrid.Slot;
 import org.main.midi.MidiColorController;
 
+import javax.sound.midi.*;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 public  class Frame extends JFrame {
+
+    private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+
 
     private final static int screenWidth =  1200;
     private final static int screenHeight =  700;
@@ -168,29 +176,38 @@ public  class Frame extends JFrame {
 
 
                     if(slot.isActive()){
+                        midiColorController.switchColorAsync(i+1, "01");
                         g2d.setColor(Color.RED);
-
                     }else{
                         g2d.setColor(Color.BLACK);
                     }
 
                     g2d.drawString("" + tempI, x, playGridY);
                     g2d.fillRect(x   , playGridY + 4,  playGridSize, playGridSize);
+                    g2d.setColor(Color.BLACK);
+
 
                     if(playerGridCounterBeat == tempI ){
                         g2d.setColor(Color.ORANGE);
+                        midiColorController.switchColorAsync(i+1, "14");
+
+                        if(tempI == 1){
+                            midiColorController.switchColorAsync(playerGrid.getSlots().length, "7F");
+                        }else{
+                            midiColorController.switchColorAsync(tempI-1, "7F");
+                        }
+
                         g2d.fillOval(x + playGridSize / 2 - sizeBeat, playGridY + playGridSize + 10 , sizeBeat, sizeBeat);
                         g2d.setColor(Color.BLACK);
-
                     }
                     if(checkBeat != playerGridCounterBeat) {
                         playOnBeat = true;
                         checkBeat =  playerGridCounterBeat;
                     }
 
+
                     if(playerGridCounterBeat == tempI  && playOnBeat && slot.isActive()){
                         slot.play();
-                        CompletableFuture<Void> future = midiColorController.switchColorAsync(2, "10");
 
                     }
 
@@ -297,7 +314,55 @@ public  class Frame extends JFrame {
                 repaint();
             }
         });
+        try {
+            List<MidiDevice> devicesList = new ArrayList<>();
 
+            for (MidiDevice.Info device : MidiSystem.getMidiDeviceInfo()) {
+                if (device.getName().contains("Arturia MiniLab mkII")) {
+                    devicesList.add(MidiSystem.getMidiDevice(device));
+                }
+            }
+
+            devicesList.forEach(midiDevice -> {
+                try {
+                    midiDevice.open();
+                } catch (MidiUnavailableException e) {
+                    throw new RuntimeException(e);
+                }
+            });
+
+            Transmitter transmitter = devicesList.get(1).getTransmitter();
+
+
+            MidiColorController midiColorController = MidiColorController.getInstance();
+
+            transmitter.setReceiver(new Receiver() {
+                @Override
+                public void send(MidiMessage message, long timeStamp) {
+                    if (message instanceof ShortMessage) {
+
+                        ShortMessage sm = (ShortMessage) message;
+                        int padNum = midiColorController.padMapper(sm.getData1());
+
+                        if (sm.getData1() >= 36 && sm.getData1() <= 43) {
+                            midiColorController.switchColorAsync(padNum, "01");
+
+                            scheduler.schedule(() -> {
+                                midiColorController.switchColorAsync(padNum, "7F");
+                            }, 150, TimeUnit.MILLISECONDS);
+                        }
+
+                    }
+                }
+                @Override
+                public void close() {
+                }
+            });
+
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
 //        jLabel.addKeyListener(new KeyAdapter() {
 //            @Override
@@ -334,9 +399,12 @@ public  class Frame extends JFrame {
 
         setSize(screenWidth,screenHeight);
         setLayout(null);
-        setVisible(true);
 
     }
+
+
+
+
 
     private void setBackground(Graphics2D g2d,int original,  int equal){
         if(original == equal){

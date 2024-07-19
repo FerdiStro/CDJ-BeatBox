@@ -13,30 +13,58 @@
 import mido
 import argparse
 
+import grpc
+from concurrent import futures
+import time
+import MidiService_pb2
+import MidiService_pb2_grpc
 
-def main(pad, color):
-    print("Pad:", pad)
-    print("Color:", color)
 
-    pad_number = int(pad, 16) - 1  # Assuming pad is in hex from 1 to F
-    pad_value = 0x70 + pad_number
-    color_value = int(color, 16)
+class MidiServiceServicer(MidiService_pb2_grpc.MidiServiceServicer):
+    def activateColor(self, request, context):
+        response = MidiService_pb2.ActivateColorResponse()
 
-    print("Pad (int):", pad_value)
-    print("Color (int):", color_value)
+        pad_hex = request.pad
+        color_hex = request.color
 
-    midi_out = mido.open_output('Arturia MiniLab mkII')
+        pad_number = int(pad_hex, 16) - 1
+        pad_value = 0x70 + pad_number
+        color_value = int(color_hex, 16)
 
-    sysex_data = [0x00, 0x20, 0x6B, 0x7F, 0x42, 0x02, 0x00, 0x10, pad_value, color_value]
+        print("Pad (int):", pad_value)
+        print("Color (int):", color_value)
 
-    midi_out.send(mido.Message('sysex', data=sysex_data))
+
+
+        midi_out = mido.open_output('Arturia MiniLab mkII')
+
+        sysex_data = [0x00, 0x20, 0x6B, 0x7F, 0x42, 0x02, 0x00, 0x10, pad_value, color_value]
+
+        midi_out.send(mido.Message('sysex', data=sysex_data))
+        response.ok = True
+        return response
+
+
+def serve():
+    server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
+    MidiService_pb2_grpc.add_MidiServiceServicer_to_server(MidiServiceServicer(), server)
+    server.add_insecure_port('[::]:50051')
+    server.start()
+    print("Server started on port 50051")
+    try:
+        while True:
+            time.sleep(86400)
+    except KeyboardInterrupt:
+        server.stop(0)
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Send a sysex message to the Arturia MiniLab mkII.')
-    parser.add_argument('pad', type=str, help='Pad id (1-16) in hex (0-9, A-F)')
-    parser.add_argument('color', type=str, help='Color code (00-7F) in hex')
+    serve()
 
-    args = parser.parse_args()
-
-    main(args.pad, args.color)
+    # parser = argparse.ArgumentParser(description='Send a sysex message to the Arturia MiniLab mkII.')
+    # parser.add_argument('pad', type=str, help='Pad id (1-16) in hex (0-9, A-F)')
+    # parser.add_argument('color', type=str, help='Color code (00-7F) in hex')
+    #
+    # args = parser.parse_args()
+    #
+    # switchColor(args.pad, args.color)
