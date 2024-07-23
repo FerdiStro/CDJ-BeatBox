@@ -11,6 +11,8 @@ plugins {
     id 'java'
     id 'idea'
     id 'com.google.protobuf' version "${protobufPluginVersion}"
+    id 'application'
+
 
 }
 
@@ -49,6 +51,10 @@ dependencies {
 
 apply from: 'gradle/generate_proto.gradle'
 
+
+application {
+    mainClass = 'org.main.Main'
+}
 
 test {
     useJUnitPlatform()
