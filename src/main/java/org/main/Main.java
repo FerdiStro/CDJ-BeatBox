@@ -63,7 +63,6 @@ public class Main {
             @Override
             public void newBeat(Beat beat) {
                 String currentTime = sdf.format(new Date());
-
                 frame.setCounterBeat(count);
                 count = (count % 4) + 1;
                 frame.setPlayerGridCounterBeat(bigCount);
@@ -93,7 +92,7 @@ public class Main {
 
 
 
-        frame.setVisible(true);
+//        frame.setVisible(true);
 
     }
 

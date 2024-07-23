@@ -107,7 +107,6 @@ public class MidiColorController {
 
             @Override
             public void onError(Throwable t) {
-                System.out.println("Error: " + t.getMessage());
                 makeRequestWithRetry(request, pad);
             }
 

@@ -1,6 +1,7 @@
 package org.main;
 
 import org.deepsymmetry.beatlink.data.*;
+import org.main.audio.PlayShots;
 import org.main.audio.library.LibraryKind;
 import org.main.audio.library.LoadLibrary;
 import org.main.audio.PlayerGrid;
@@ -55,6 +56,21 @@ public  class Frame extends JFrame {
     private final int libraryY = playGridY;
     private final int libraryWidth = 400;
     private final int libraryHeight = 300;
+
+
+    private final int controlPanelX = libraryX + 80;
+    private final int controlPanelY = metaDataY;
+    private final int controlPanelWith = 320;
+    private final int controlPanelHeight = 200;
+
+    private final int toggleSwitchX = controlPanelX + 10 ;
+    private final int toggleSwitchY = metaDataY + 10;
+    private final int toggleWith    = 100;
+    private final int toggleHeight  = 20;
+    private boolean toggleSwitchActive =  false;
+
+    private List<PlayShots> shotList  = new ArrayList<>();
+
 
     private int masterDevicdId = 0;
 
@@ -116,6 +132,8 @@ public  class Frame extends JFrame {
                 }
 
 
+
+
                 if(metaData != null){
                     for(Integer playerNumber : metaData.keySet()){
                         TrackMetadata trackMetadata = metaData.get(playerNumber);
@@ -163,6 +181,30 @@ public  class Frame extends JFrame {
                        }
                 }
                 playOnBeat =  false;
+
+                /*
+                    ToggleSwitch
+                */
+
+                g2d.setColor(Color.LIGHT_GRAY);
+                g2d.fillRect(controlPanelX, controlPanelY, controlPanelWith, controlPanelHeight);
+
+                String tempToggleSwitch ="";
+                if(toggleSwitchActive){
+                    g2d.setColor(Color.ORANGE);
+                    tempToggleSwitch = "ON";
+                }else{
+                    g2d.setColor(Color.BLACK);
+                    tempToggleSwitch = "OFF";
+
+                }
+                g2d.drawRect(toggleSwitchX, toggleSwitchY, toggleWith , toggleHeight  );
+                g2d.setColor(Color.BLACK);
+                g2d.drawString("toggle-slot -" + tempToggleSwitch, toggleSwitchX + 2, toggleSwitchY + toggleHeight - 5 );
+
+
+
+
                 for(int i = 0 ;  i != playerGrid.getSlots().length; i++){
 
 
@@ -175,11 +217,19 @@ public  class Frame extends JFrame {
                     int x  = playGridX * tempI +  (playGridSize * tempI - playGridSize );
 
 
-                    if(slot.isActive()){
+
+                    /*
+                        Slot
+                    */
+                    if(slot.isActive() && !toggleSwitchActive){
                         midiColorController.switchColorAsync(i+1, "01");
                         g2d.setColor(Color.RED);
-                    }else{
+                    } else if (toggleSwitchActive) {
+                        midiColorController.switchColorAsync(i+1, "11");
+
+                    } else{
                         g2d.setColor(Color.BLACK);
+                        midiColorController.switchColorAsync(i+1, "7F");
                     }
 
                     g2d.drawString("" + tempI, x, playGridY);
@@ -193,8 +243,6 @@ public  class Frame extends JFrame {
 
                         if(tempI == 1){
                             midiColorController.switchColorAsync(playerGrid.getSlots().length, "7F");
-                        }else{
-                            midiColorController.switchColorAsync(tempI-1, "7F");
                         }
 
                         g2d.fillOval(x + playGridSize / 2 - sizeBeat, playGridY + playGridSize + 10 , sizeBeat, sizeBeat);
@@ -206,9 +254,8 @@ public  class Frame extends JFrame {
                     }
 
 
-                    if(playerGridCounterBeat == tempI  && playOnBeat && slot.isActive()){
+                    if(playerGridCounterBeat == tempI  && playOnBeat && slot.isActive() && !toggleSwitchActive){
                         slot.play();
-
                     }
 
                     /*
@@ -280,13 +327,23 @@ public  class Frame extends JFrame {
                 int mouseX = e.getX();
                 int mouseY = e.getY();
 
+
+
+
+                Rectangle rectToggle = new Rectangle(toggleSwitchX, toggleSwitchY, toggleWith, toggleHeight);
+
+                if (rectToggle.contains(mouseX, mouseY)) {
+                    toggleSwitchActive = !toggleSwitchActive;
+                    repaint();
+                }
+
                 for (int i = 0; i != playerGrid.getSlots().length; i++) {
                     Slot slot = playerGrid.getSlots()[i];
                     int tempI = i + 1;
                     int x = playGridX * tempI + (playGridSize * tempI - playGridSize);
 
                     Rectangle rect = new Rectangle(x + 2, playGridY, playGridSize, playGridSize);
-                    if (rect.contains(mouseX, mouseY)) {
+                    if (rect.contains(mouseX, mouseY) && toggleSwitchActive) {
                         slot.addSelectedSound(soundLibrary.getSelectedSlotAudio());
                         soundLibrary.getSelectedSound().stopRreListen();
                         repaint();
@@ -333,26 +390,48 @@ public  class Frame extends JFrame {
 
             Transmitter transmitter = devicesList.get(1).getTransmitter();
 
-
             MidiColorController midiColorController = MidiColorController.getInstance();
 
+
+
             transmitter.setReceiver(new Receiver() {
+                long timeMidi = 0;
                 @Override
                 public void send(MidiMessage message, long timeStamp) {
-                    if (message instanceof ShortMessage) {
+
+                    if (message instanceof ShortMessage && timeStamp > timeMidi ) {
+                        timeMidi = timeStamp + 000000500000;
+
+
 
                         ShortMessage sm = (ShortMessage) message;
+
+                        System.out.println("Da " + sm.getData1() );
+
                         int padNum = midiColorController.padMapper(sm.getData1());
 
+                        if(sm.getData1() == 113){
+                            toggleSwitchActive =  !toggleSwitchActive;
+
+                        }
                         if (sm.getData1() >= 36 && sm.getData1() <= 43) {
                             midiColorController.switchColorAsync(padNum, "01");
 
-                            scheduler.schedule(() -> {
-                                midiColorController.switchColorAsync(padNum, "7F");
-                            }, 150, TimeUnit.MILLISECONDS);
+                            if(soundLibrary.getSelectedSound().getSelectedTitel() != null){
+                                if(!toggleSwitchActive){
+                                    playerGrid.getSlots()[padNum-1].addSelectedSound(soundLibrary.getSelectedSlotAudio());
+                                }
+                                if(toggleSwitchActive){
+                                    shotList.add(new PlayShots(soundLibrary.getSelectedSlotAudio(), padNum));
+                                }
+
+                            }
+
+
                         }
 
                     }
+                    repaint();
                 }
                 @Override
                 public void close() {
@@ -399,7 +478,7 @@ public  class Frame extends JFrame {
 
         setSize(screenWidth,screenHeight);
         setLayout(null);
-
+        setVisible(true);
     }
 
 
@@ -419,7 +498,26 @@ public  class Frame extends JFrame {
         jLabel.repaint();
     }
 
+    private final ScheduledExecutorService beatPlayer = Executors.newScheduledThreadPool(1);
+
     public void setCounterBeat(int counterBeat) {
+        long halfBeatMillis = (long) (60000 / (2 * masterTempo));
+        try {
+            for(PlayShots playShots : shotList){
+                if(playShots.getPadNum() == 1 ){
+                    playShots.play();
+                }
+                if (playShots.getPadNum() == 1) {
+                    playShots.play();
+//                    shotList.remove(playShots);
+                } else if (playShots.getPadNum() == 2) {
+                    playShots.play();
+                    beatPlayer.schedule(playShots::play, halfBeatMillis, TimeUnit.MILLISECONDS);
+                }
+                shotList.remove(playShots);
+            }
+        }catch (Exception ignore){}
+
         this.counterBeat = counterBeat;
         jLabel.repaint();
 
