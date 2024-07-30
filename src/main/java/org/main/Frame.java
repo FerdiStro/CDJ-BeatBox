@@ -173,10 +173,6 @@ public  class Frame extends JFrame {
                             g2d.drawString(trackMetadata.getArtist().label, x + 110, metaDataY + 60);
                             g2d.drawString(trackMetadata.getKey().label, x + 110   , metaDataY + 80);
 
-
-
-
-
                         }
                        }
                 }
@@ -371,38 +367,18 @@ public  class Frame extends JFrame {
                 repaint();
             }
         });
-        try {
-            List<MidiDevice> devicesList = new ArrayList<>();
-
-            for (MidiDevice.Info device : MidiSystem.getMidiDeviceInfo()) {
-                if (device.getName().contains("Arturia MiniLab mkII")) {
-                    devicesList.add(MidiSystem.getMidiDevice(device));
-                }
-            }
-
-            devicesList.forEach(midiDevice -> {
-                try {
-                    midiDevice.open();
-                } catch (MidiUnavailableException e) {
-                    throw new RuntimeException(e);
-                }
-            });
-
-            Transmitter transmitter = devicesList.get(1).getTransmitter();
-
-            MidiColorController midiColorController = MidiColorController.getInstance();
 
 
 
-            transmitter.setReceiver(new Receiver() {
+        MidiColorController midiColorController = MidiColorController.getInstance();
+        midiColorController.setReceiver(new Receiver() {
                 long timeMidi = 0;
+
                 @Override
                 public void send(MidiMessage message, long timeStamp) {
 
                     if (message instanceof ShortMessage && timeStamp > timeMidi ) {
                         timeMidi = timeStamp + 000000500000;
-
-
 
                         ShortMessage sm = (ShortMessage) message;
 
@@ -426,10 +402,7 @@ public  class Frame extends JFrame {
                                 }
 
                             }
-
-
                         }
-
                     }
                     repaint();
                 }
@@ -438,10 +411,6 @@ public  class Frame extends JFrame {
                 }
             });
 
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
 
 //        jLabel.addKeyListener(new KeyAdapter() {
 //            @Override
@@ -469,12 +438,8 @@ public  class Frame extends JFrame {
 //        jLabel.requestFocusInWindow();
 
         jLabel.setSize(screenWidth, screenHeight);
+
         add(jLabel);
-
-
-
-
-
 
         setSize(screenWidth,screenHeight);
         setLayout(null);
@@ -536,4 +501,7 @@ public  class Frame extends JFrame {
     public void setPlayerGridCounterBeat(int playerGridCounterBeat) {
         this.playerGridCounterBeat = playerGridCounterBeat;
     }
+
+
+
 }
