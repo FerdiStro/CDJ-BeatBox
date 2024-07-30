@@ -3,22 +3,19 @@ package org.main.midi;
 
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
-import io.grpc.Server;
-import io.grpc.ServerBuilder;
 import io.grpc.stub.StreamObserver;
 import net.devh.boot.grpc.card.service.lib.ActivateColorRequest;
 import net.devh.boot.grpc.card.service.lib.ActivateColorResponse;
 import net.devh.boot.grpc.card.service.lib.MidiServiceGrpc;
-import net.devh.boot.grpc.card.service.lib.MidiServiceGrpc.MidiServiceStub;
 
-import java.awt.*;
+import javax.sound.midi.*;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.HashMap;
-import java.util.Timer;
-import java.util.TimerTask;
-import java.util.concurrent.CompletableFuture;
+import java.util.*;
+import java.util.List;
+
+import static java.lang.Thread.sleep;
 
 public class MidiColorController {
 
@@ -35,8 +32,11 @@ public class MidiColorController {
     private Process process;
     private final Object processLock = new Object();
 
+    private boolean grpcUP = false;
+
 
     private MidiColorController() {
+
         String binaryPath = "src/main/java/org/main/midi/color/binSendToMiniLabMk2";
 
         Runnable binaryRunner = new Runnable() {
@@ -48,6 +48,7 @@ public class MidiColorController {
                     synchronized (processLock) {
                         process = processBuilder.start();
                     }
+                    grpcUP = true;
 
                     BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
                     String line;
@@ -56,12 +57,17 @@ public class MidiColorController {
                     }
 
                     int exitCode = process.waitFor();
-                    System.out.println("Process exited with code: " + exitCode);
+                    System.out.println("Python MIDI-Server exited with code: " + exitCode);
+                    grpcUP = false;
+
                 } catch (IOException | InterruptedException e) {
                     e.printStackTrace();
                 }
             }
         };
+
+
+
 
         Thread thread = new Thread(binaryRunner);
         thread.start();
@@ -97,23 +103,86 @@ public class MidiColorController {
             }
         }, 0, 10);
 
+        setTransmitter();
     }
 
-    private void makeRequestWithRetry(ActivateColorRequest request, int pad) {
-        grpcStub.activateColor(request, new StreamObserver<>() {
-            @Override
-            public void onNext(ActivateColorResponse response) {
-            }
+    private Receiver receiver;
 
-            @Override
-            public void onError(Throwable t) {
-                makeRequestWithRetry(request, pad);
-            }
+    public void setReceiver(Receiver receiver){
+        this.receiver = receiver;
+    }
 
+    private void setTransmitter(){
+        Thread setTranmitterThread  = new Thread(new Runnable() {
+            int count = 5;
             @Override
-            public void onCompleted() {
+            public void run()  {
+                try {
+                  Transmitter transmitter =   getTransmitter();
+                  transmitter.setReceiver(receiver);
+                }catch (Exception e){
+                    try {
+                        System.out.println("Transmitter failed to start, retry in "+count+"s : " + e.getMessage());
+                        sleep(count * 1000L);
+                        count = count + 2;
+                        if(count < 60){
+                            run();
+                        }else{
+                            System.out.println("To many attempts, no Midi-device found");
+                        }
+                    } catch (Exception treadProblem) {
+                        treadProblem.printStackTrace();
+                    }
+                }
             }
         });
+        setTranmitterThread.start();
+    }
+
+    private Transmitter getTransmitter() throws Exception{
+
+        List<MidiDevice> devicesList = new ArrayList<>();
+
+        for (MidiDevice.Info device : MidiSystem.getMidiDeviceInfo()) {
+            if (device.getName().contains("Arturia MiniLab mkII")) {
+                devicesList.add(MidiSystem.getMidiDevice(device));
+            }
+        }
+
+        devicesList.forEach(midiDevice -> {
+            try {
+                midiDevice.open();
+            } catch (MidiUnavailableException e) {
+                throw new RuntimeException(e);
+            }
+        });
+
+        return devicesList.get(1).getTransmitter();
+    }
+
+
+
+    private void makeRequestWithRetry(ActivateColorRequest request, int pad) {
+        if(grpcUP){
+            grpcStub.activateColor(request, new StreamObserver<>() {
+                @Override
+                public void onNext(ActivateColorResponse response) {
+                }
+
+                @Override
+                public void onError(Throwable t) {
+                    try {
+                        sleep(5);
+                        makeRequestWithRetry(request, pad);
+                    } catch (Exception ignore) {
+                    }
+                }
+
+                @Override
+                public void onCompleted() {
+                }
+            });
+        }
     }
 
 
