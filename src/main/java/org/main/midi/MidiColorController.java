@@ -7,6 +7,8 @@ import io.grpc.stub.StreamObserver;
 import net.devh.boot.grpc.card.service.lib.ActivateColorRequest;
 import net.devh.boot.grpc.card.service.lib.ActivateColorResponse;
 import net.devh.boot.grpc.card.service.lib.MidiServiceGrpc;
+import org.main.Frame;
+import org.main.util.Logger;
 
 import javax.sound.midi.*;
 import java.io.BufferedReader;
@@ -25,6 +27,7 @@ public class MidiColorController {
     public static MidiColorController getInstance(){
         if(INSTANCE==null){
             INSTANCE =  new MidiColorController();
+            Logger.init(INSTANCE.getClass());
         }
         return INSTANCE;
     }
@@ -39,38 +42,38 @@ public class MidiColorController {
 
         String binaryPath = "src/main/java/org/main/midi/color/binSendToMiniLabMk2";
 
-        Runnable binaryRunner = new Runnable() {
-            @Override
-            public void run() {
-                ProcessBuilder processBuilder = new ProcessBuilder(binaryPath);
-
-                try {
-                    synchronized (processLock) {
-                        process = processBuilder.start();
-                    }
-                    grpcUP = true;
-
-                    BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-                    String line;
-                    while ((line = reader.readLine()) != null) {
-                        System.out.println(line);
-                    }
-
-                    int exitCode = process.waitFor();
-                    System.out.println("Python MIDI-Server exited with code: " + exitCode);
-                    grpcUP = false;
-
-                } catch (IOException | InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
-        };
-
-
+//        Runnable binaryRunner = new Runnable() {
+//            @Override
+//            public void run() {
+//                ProcessBuilder processBuilder = new ProcessBuilder(binaryPath);
+//
+//                try {
+//                    synchronized (processLock) {
+//                        process = processBuilder.start();
+//                    }
+//                    grpcUP = true;
+//
+//                    BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+//                    String line;
+//                    while ((line = reader.readLine()) != null) {
+//                        System.out.println(line);
+//                    }
+//
+//                    int exitCode = process.waitFor();
+//                    System.out.println("Python MIDI-Server exited with code: " + exitCode);
+//                    grpcUP = false;
+//
+//                } catch (IOException | InterruptedException e) {
+//                    e.printStackTrace();
+//                }
+//            }
+//        };
 
 
-        Thread thread = new Thread(binaryRunner);
-        thread.start();
+
+
+//        Thread thread = new Thread(binaryRunner);
+//        thread.start();
 
         ManagedChannel channel = ManagedChannelBuilder.forAddress("localhost", 50051)
                 .usePlaintext()
@@ -124,6 +127,7 @@ public class MidiColorController {
                     try {
                         System.out.println("Transmitter failed to start, retry in "+count+"s : " + e.getMessage());
                         sleep(count * 1000L);
+                        System.out.println(count);
                         count = count + 2;
                         if(count < 60){
                             run();
