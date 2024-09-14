@@ -63,7 +63,6 @@ public class Frame extends JFrame {
     private boolean playOnBeat = false;
     private int checkBeat = 0;
 
-//    private int libraryX = 680 + playGridSize + 20;
     private int libraryX;
     private int libraryButtonWidth;
     private int libraryButtonHeight;
@@ -73,15 +72,15 @@ public class Frame extends JFrame {
     private int libraryHeight;
 
 
-    private final int controlPanelX = libraryX + 80;
-    private final int controlPanelY = metaDataY;
-    private final int controlPanelWith = 320;
-    private final int controlPanelHeight = 200;
+    private int controlPanelX;
+    private int controlPanelY;
+    private int controlPanelWith;
+    private int controlPanelHeight ;
 
-    private final int toggleSwitchX = controlPanelX + 10;
-    private final int toggleSwitchY = metaDataY + 10;
-    private final int toggleWith = 100;
-    private final int toggleHeight = 20;
+    private int toggleSwitchX;
+    private int toggleSwitchY;
+    private int toggleWith;
+    private int toggleHeight;
     private boolean toggleSwitchActive = false;
 
     private  int settingsSize;
@@ -311,7 +310,7 @@ public class Frame extends JFrame {
                     /*
                         Volume-Slider
                      */
-                    slot.drawVolumeSlider(g2d, x, playGridY + sizeBeat * 8, getSize());
+                    slot.drawVolumeSlider(g2d, x , playGridY + sizeBeat * 8 + (int) (getWidth() * 0.02), getSize());
                     g2d.setColor(Color.BLACK);
 
 
@@ -450,7 +449,7 @@ public class Frame extends JFrame {
             public void send(MidiMessage message, long timeStamp) {
 
                 if (message instanceof ShortMessage && timeStamp > timeMidi) {
-                    timeMidi = timeStamp + 000000500000;
+                    timeMidi = timeStamp + 000_000_700_000;
 
                     ShortMessage sm = (ShortMessage) message;
 
@@ -599,7 +598,7 @@ public class Frame extends JFrame {
          */
         settingsSize =   (int) (Math.min(dimension.width, dimension.height) * 0.05);
         settingsButtonX = xBeat;
-        settingsButtonY = yBeat + settingsSize  ;
+        settingsButtonY = yBeat - settingsSize / 3 + settingsSize ;
 
         /*
                 todo: meta-data
@@ -610,17 +609,13 @@ public class Frame extends JFrame {
             Library
          */
 
-        System.out.println((int) (dimension.width * 0.08));
-        System.out.println( (libraryStringMaxWidth * fontSize));
-
-
-        libraryX = (int) Math.max(playGridX * (PlayerGrid.getInstance().getSlots().length + 1) + (playGridSize * (PlayerGrid.getInstance().getSlots().length + 1) - playGridSize), dimension.width  -  libraryWidth) ;
+        libraryX =  Math.max(playGridX * (PlayerGrid.getInstance().getSlots().length + 1) + (playGridSize * (PlayerGrid.getInstance().getSlots().length + 1) - playGridSize), dimension.width  -  libraryWidth) ;
         libraryButtonWidth = (int) (Math.max( libraryStringMaxWidth * fontSize   , dimension.width * 0.08 ));
         libraryButtonHeight  = (int) (Math.min(fontSize + 2, Math.max(fontSize  , dimension.width * 0.02  )));
         libraryY = playGridY;
-
         libraryWidth = (int) (dimension.width * 0.3);
-        libraryHeight =  (int) (dimension.height * 0.40);
+        libraryHeight =  (int) (dimension.height * 0.4);
+
         /*
             PlayerGrid | Slots
          */
@@ -628,15 +623,17 @@ public class Frame extends JFrame {
         playGridSize = (int) (Math.min(dimension.width - libraryWidth , dimension.height) *  0.118);
         playGridY =   (int) (dimension.height * 0.5);
 
-
-
-
         /*
             Toggle-switch
         */
-//        controlPanelX
-
-
+        controlPanelX = libraryX ;
+        controlPanelY = metaDataY;
+        controlPanelWith = (int) (dimension.width * 0.3);
+        controlPanelHeight = (int) (dimension.height *  0.3);
+        toggleSwitchX = controlPanelX + (int) (dimension.width *  0.005);
+        toggleSwitchY = metaDataY + (int) (dimension.height * 0.005);
+        toggleWith = (int) (dimension.width * 0.05) + 8 * fontSize  ;
+        toggleHeight =  (int) (dimension.height *  0.03);
 
         /*
             Repaint
