@@ -16,10 +16,10 @@ public class Slot implements ChangeListener {
     private double sliderValue = 0.5;
 
     //todo: load other slot audio with library
-    private static final int VOLUME_SLIDER_WIDTH = 10;
-    private static final int VOLUME_SLIDER_HEIGHT = 80;
-    private static final int sliderHeight = 5;
-    private static final int SLIDER_WIDTH = VOLUME_SLIDER_WIDTH -2;
+    private  int VOLUME_SLIDER_WIDTH ;
+    private  int VOLUME_SLIDER_HEIGHT;
+    private  int sliderHeight;
+    private  int SLIDER_WIDTH;
 
     public int getVolumeSliderHeight(){
         return VOLUME_SLIDER_HEIGHT;
@@ -31,21 +31,35 @@ public class Slot implements ChangeListener {
 
 
     //todo: connect volumeSlider to  MINILAB MIDI keyboard
-    public void drawVolumeSlider(Graphics2D g2d, int x, int y) {
+    public void drawVolumeSlider(Graphics2D g2d, int x, int y , Dimension dimension) {
         this.x =  x;
         this.y =  y;
+
+        VOLUME_SLIDER_WIDTH  = (int) (dimension.width * 0.012);
+        VOLUME_SLIDER_HEIGHT = (int) (dimension.height * 0.20);
+
+        sliderHeight = (int) (dimension.width * 0.01);
+        SLIDER_WIDTH = VOLUME_SLIDER_WIDTH - (int) (dimension.width * 0.004)  ;
 
         g2d.setColor(Color.BLACK);
         g2d.fillRect(x, y, VOLUME_SLIDER_WIDTH, VOLUME_SLIDER_HEIGHT);
 
-        int sliderY = y + (int) ((1 - sliderValue) * (VOLUME_SLIDER_HEIGHT - sliderHeight));
 
         g2d.setColor(Color.RED);
-        g2d.fillRect(x + (VOLUME_SLIDER_WIDTH - SLIDER_WIDTH) / 2, sliderY, SLIDER_WIDTH, sliderHeight);
+
+        int sliderY = y + (int) ((1 - sliderValue) * (VOLUME_SLIDER_HEIGHT - sliderHeight));
+        g2d.fillRect((  x + VOLUME_SLIDER_WIDTH - SLIDER_WIDTH / 2)  -SLIDER_WIDTH,  sliderY  , SLIDER_WIDTH, sliderHeight);
+
+
+
+        g2d.drawString("-  10db", x + VOLUME_SLIDER_WIDTH, y );
+        g2d.drawString("-   0db", x  + VOLUME_SLIDER_WIDTH, y + VOLUME_SLIDER_HEIGHT / 2);
+        g2d.drawString("-  10db", x + VOLUME_SLIDER_WIDTH, y + VOLUME_SLIDER_HEIGHT);
     }
 
     public void mousePressed(int mouseX, int mouseY) {
         int sliderY = y + (int) ((1 - sliderValue) * (VOLUME_SLIDER_HEIGHT - sliderHeight));
+
         if (mouseX >= x && mouseX <= x + VOLUME_SLIDER_WIDTH && mouseY >= sliderY && mouseY <= sliderY + sliderHeight) {
             draggingSlider = true;
         }
@@ -55,6 +69,7 @@ public class Slot implements ChangeListener {
         if (draggingSlider) {
             double percent = (double) (mouseY - y) / (VOLUME_SLIDER_HEIGHT - sliderHeight);
             sliderValue = Math.max(0.0, Math.min(1.0, 1 - percent));
+            System.out.println(sliderValue);
             for(SlotAudio audio: this.selectedSounds){
                 audio.setVolume((float) sliderValue);
             }
