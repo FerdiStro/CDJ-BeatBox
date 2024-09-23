@@ -1,15 +1,16 @@
 package org.main;
 
-import org.apache.commons.math3.analysis.function.Log;
 import org.deepsymmetry.beatlink.data.*;
 import org.main.audio.PlayShots;
 import org.main.audio.library.LibraryKind;
 import org.main.audio.library.LoadLibrary;
 import org.main.audio.PlayerGrid;
 import org.main.audio.playegrid.Slot;
+import org.main.audio.playegrid.SlotAudio;
 import org.main.midi.MidiColorController;
 import org.main.settings.Settings;
 import org.main.settings.SettingsFrame;
+import org.main.util.Koordinate;
 import org.main.util.Logger;
 
 import javax.imageio.ImageIO;
@@ -17,18 +18,17 @@ import javax.sound.midi.*;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
-import java.awt.geom.AffineTransform;
 import java.io.File;
 import java.io.IOException;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
-import java.util.ArrayList;
+import java.util.*;
 import java.util.List;
-import java.util.Locale;
-import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+
+import static java.lang.Thread.sleep;
 
 public class Frame extends JFrame {
 
@@ -56,9 +56,9 @@ public class Frame extends JFrame {
     private final int metaDataHeight = 200;
     private final int metaDataWidth = 400;
 
-    private  int playGridX;
-    private  int playGridY;
-    private  int playGridSize;
+    private int playGridX;
+    private int playGridY;
+    private int playGridSize;
     private int playerGridCounterBeat = 0;
     private boolean playOnBeat = false;
     private int checkBeat = 0;
@@ -75,7 +75,7 @@ public class Frame extends JFrame {
     private int controlPanelX;
     private int controlPanelY;
     private int controlPanelWith;
-    private int controlPanelHeight ;
+    private int controlPanelHeight;
 
     private int toggleSwitchX;
     private int toggleSwitchY;
@@ -83,11 +83,18 @@ public class Frame extends JFrame {
     private int toggleHeight;
     private boolean toggleSwitchActive = false;
 
-    private  int settingsSize;
+
+    private boolean toggleVolumeSlider = false;
+    private HashMap<String, Koordinate> kordSlotList = new HashMap<>();
+    private HashMap<String, Koordinate> kordSlotMarkList = new HashMap<>();
+    private HashMap<String, Koordinate> kordSlotRemoveList = new HashMap<>();
 
 
-    private  int settingsButtonX = xBeat;
-    private  int settingsButtonY = yBeat + settingsSize;
+    private int settingsSize;
+
+
+    private int settingsButtonX = xBeat;
+    private int settingsButtonY = yBeat + settingsSize;
 
 
     private List<PlayShots> shotList = new ArrayList<>();
@@ -97,7 +104,7 @@ public class Frame extends JFrame {
 
     private final JLabel jLabel;
 
-    private static  Frame INSTANCE;
+    private static Frame INSTANCE;
 
     private final LoadLibrary soundLibrary = LoadLibrary.getInstance();
 
@@ -114,7 +121,7 @@ public class Frame extends JFrame {
     private boolean setupString = true;
 
 
-    private  Frame() {
+    private Frame() {
         setLayout(null);
 
 
@@ -275,7 +282,7 @@ public class Frame extends JFrame {
                         g2d.setColor(Color.RED);
                     } else if (toggleSwitchActive) {
                         midiColorController.switchColorAsync(i + 1, "11");
-
+                        g2d.setColor(Color.BLACK);
                     } else {
                         g2d.setColor(Color.BLACK);
                         midiColorController.switchColorAsync(i + 1, "7F");
@@ -310,17 +317,50 @@ public class Frame extends JFrame {
                     /*
                         Volume-Slider
                      */
-                    slot.drawVolumeSlider(g2d, x , playGridY + sizeBeat * 8 + (int) (getWidth() * 0.02), getSize());
-                    g2d.setColor(Color.BLACK);
+                    if (toggleVolumeSlider) {
+                        slot.drawVolumeSlider(g2d, x, playGridY + sizeBeat * 8 + (int) (getWidth() * 0.02), getSize());
+                    }
 
 
+                    /*
+                       Sound-list
+                     */
+                    if (!toggleVolumeSlider) {
+                        List<SlotAudio> removeSlotAudio = new ArrayList<>();
+
+                        for (int j = 0; j != slot.getSelectedSounds().size(); j++) {
+                            int kordY = playGridY + sizeBeat + (int) (getHeight() * 0.08) + fontSize * (j + 1) + fontSize * 2;
+                            Koordinate koordinate = new Koordinate(x, kordY);
+
+                            if (kordSlotRemoveList.get(koordinate.getName()) != null) {
+                                SlotAudio slotAudio = slot.getSelectedSounds().get(j);
+                                removeSlotAudio.add(slotAudio);
+                                kordSlotRemoveList.remove(koordinate.getName());
+                            }else{
+                                kordSlotList.put(koordinate.getName(), koordinate);
+
+                                if (kordSlotMarkList.get(koordinate.getName()) != null) {
+                                    g2d.setColor(Color.ORANGE);
+                                } else {
+                                    g2d.setColor(Color.LIGHT_GRAY);
+                                }
 
 
-//                    x = x - 15;
-//                    //todo remove sound, better looking and func
-//                    for (int j = 0; j != slot.getSelectedSounds().size(); j++) {
-//                        g2d.drawString(slot.getSelectedSounds().get(j).getName(), x, (y + playGridSize) + 20 * (j + 1) + 20);
-//                    }
+                                g2d.fillRect(x, kordY, playGridSize, fontSize);
+                                g2d.setColor(Color.BLACK);
+                                g2d.drawString(slot.getSelectedSounds().get(j).getName(), x, playGridY + sizeBeat + (int) (getHeight() * 0.08) + fontSize * (j + 1) + fontSize * 3);
+
+                            }
+
+                        }
+                        if(!removeSlotAudio.isEmpty()) {
+                            for (SlotAudio slotAudio : removeSlotAudio) {
+                                slot.getSelectedSounds().remove(slotAudio);
+                            }
+                        }
+                    }
+
+                    //                    //todo remove sound, better looking and func
 
 
                 }
@@ -345,9 +385,7 @@ public class Frame extends JFrame {
                     g2d.drawString(libraryKind.getName(), libraryX + 1 + libraryButtonWidth * i, libraryY - 4);
 
 
-
-
-                    if(libraryStringMaxWidth < libraryKind.getName().length()){
+                    if (libraryStringMaxWidth < libraryKind.getName().length()) {
                         libraryStringMaxWidth = libraryKind.getName().length();
                     }
                 }
@@ -424,8 +462,20 @@ public class Frame extends JFrame {
                  */
                 Rectangle settingsButtonRect = new Rectangle(settingsButtonX, settingsButtonY, settingsSize, settingsSize);
                 if (settingsButtonRect.contains(mouseX, mouseY)) {
-                    openSettingsWindow();
+                    toggleSettingWindow();
                     repaint();
+                }
+
+                /*
+                   Sound-list
+                */
+                for (String kordName : kordSlotList.keySet()) {
+                    Koordinate koordinate = kordSlotList.get(kordName);
+                    Rectangle kordListRect = new Rectangle(koordinate.getX(), koordinate.getY(), playGridSize, fontSize);
+
+                    if (kordListRect.contains(mouseX, mouseY)) {
+                        kordSlotRemoveList.put(kordName, koordinate);
+                    }
                 }
 
             }
@@ -438,6 +488,27 @@ public class Frame extends JFrame {
                 }
                 repaint();
             }
+
+            @Override
+            public void mouseMoved(MouseEvent e) {
+                int mouseX = e.getX();
+                int mouseY = e.getY();
+
+                /*
+                   Sound-list
+                */
+                for (String kordName : kordSlotList.keySet()) {
+                    Koordinate koordinate = kordSlotList.get(kordName);
+                    Rectangle kordListRect = new Rectangle(koordinate.getX(), koordinate.getY(), playGridSize, fontSize);
+                    if (kordListRect.contains(mouseX, mouseY)) {
+                        kordSlotMarkList.put(kordName, koordinate);
+                    } else {
+                        kordSlotMarkList.remove(kordName);
+                    }
+                }
+                repaint();
+            }
+
         });
 
 
@@ -459,8 +530,12 @@ public class Frame extends JFrame {
 
                     if (sm.getData1() == 113) {
                         toggleSwitchActive = !toggleSwitchActive;
-
                     }
+
+                    if (sm.getData1() == 115) {
+                        toggleVolumeSlider = !toggleVolumeSlider;
+                    }
+
                     if (sm.getData1() >= 36 && sm.getData1() <= 43) {
                         midiColorController.switchColorAsync(padNum, "01");
 
@@ -571,7 +646,7 @@ public class Frame extends JFrame {
     }
 
 
-    public void  resizeFrame(Dimension dimension) {
+    public void resizeFrame(Dimension dimension) {
         fontSize = Math.min(dimension.width, dimension.height) / 40;
         jLabel.setBounds(0, 0, dimension.width, dimension.height);
 
@@ -591,14 +666,14 @@ public class Frame extends JFrame {
         /*
            Set-up Text
          */
-        setUpStringX = (int) (masterX + dimension.width  *  0.05);
+        setUpStringX = (int) (masterX + dimension.width * 0.05);
 
         /*
             Settings-Button
          */
-        settingsSize =   (int) (Math.min(dimension.width, dimension.height) * 0.05);
+        settingsSize = (int) (Math.min(dimension.width, dimension.height) * 0.05);
         settingsButtonX = xBeat;
-        settingsButtonY = yBeat - settingsSize / 3 + settingsSize ;
+        settingsButtonY = yBeat - settingsSize / 3 + settingsSize;
 
         /*
                 todo: meta-data
@@ -609,36 +684,36 @@ public class Frame extends JFrame {
             Library
          */
 
-        libraryX =  Math.max(playGridX * (PlayerGrid.getInstance().getSlots().length + 1) + (playGridSize * (PlayerGrid.getInstance().getSlots().length + 1) - playGridSize), dimension.width  -  libraryWidth) ;
-        libraryButtonWidth = (int) (Math.max( libraryStringMaxWidth * fontSize   , dimension.width * 0.08 ));
-        libraryButtonHeight  = (int) (Math.min(fontSize + 2, Math.max(fontSize  , dimension.width * 0.02  )));
+        libraryX = Math.max(playGridX * (PlayerGrid.getInstance().getSlots().length + 1) + (playGridSize * (PlayerGrid.getInstance().getSlots().length + 1) - playGridSize), dimension.width - libraryWidth);
+        libraryButtonWidth = (int) (Math.max(libraryStringMaxWidth * fontSize, dimension.width * 0.08));
+        libraryButtonHeight = (int) (Math.min(fontSize + 2, Math.max(fontSize, dimension.width * 0.02)));
         libraryY = playGridY;
         libraryWidth = (int) (dimension.width * 0.3);
-        libraryHeight =  (int) (dimension.height * 0.4);
+        libraryHeight = (int) (dimension.height * 0.4);
 
         /*
             PlayerGrid | Slots
          */
         playGridX = (int) (dimension.width * 0.018);
-        playGridSize = (int) (Math.min(dimension.width - libraryWidth , dimension.height) *  0.118);
-        playGridY =   (int) (dimension.height * 0.5);
+        playGridSize = (int) (Math.min(dimension.width - libraryWidth, dimension.height) * 0.118);
+        playGridY = (int) (dimension.height * 0.5);
 
         /*
             Toggle-switch
         */
-        controlPanelX = libraryX ;
+        controlPanelX = libraryX;
         controlPanelY = metaDataY;
         controlPanelWith = (int) (dimension.width * 0.3);
-        controlPanelHeight = (int) (dimension.height *  0.3);
-        toggleSwitchX = controlPanelX + (int) (dimension.width *  0.005);
+        controlPanelHeight = (int) (dimension.height * 0.3);
+        toggleSwitchX = controlPanelX + (int) (dimension.width * 0.005);
         toggleSwitchY = metaDataY + (int) (dimension.height * 0.005);
-        toggleWith = (int) (dimension.width * 0.05) + 8 * fontSize  ;
-        toggleHeight =  (int) (dimension.height *  0.03);
+        toggleWith = (int) (dimension.width * 0.05) + 8 * fontSize;
+        toggleHeight = (int) (dimension.height * 0.03);
 
         /*
             Repaint
          */
-        for( LibraryKind libraryKind  : LoadLibrary.getInstance().getFolderView()){
+        for (LibraryKind libraryKind : LoadLibrary.getInstance().getFolderView()) {
             libraryKind.getTree().setBounds(libraryX, libraryY, libraryWidth, libraryHeight);
         }
         repaint();
@@ -661,8 +736,8 @@ public class Frame extends JFrame {
         this.playerGridCounterBeat = playerGridCounterBeat;
     }
 
-    public void openSettingsWindow() {
-        SettingsFrame.getInstance().toggleFrameVisible();
+    public void toggleSettingWindow() {
+        Settings.getInstance().toggleVisible();
     }
 
 

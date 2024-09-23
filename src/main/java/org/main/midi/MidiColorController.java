@@ -42,38 +42,41 @@ public class MidiColorController {
 
         String binaryPath = "src/main/java/org/main/midi/color/binSendToMiniLabMk2";
 
-//        Runnable binaryRunner = new Runnable() {
-//            @Override
-//            public void run() {
-//                ProcessBuilder processBuilder = new ProcessBuilder(binaryPath);
-//
-//                try {
-//                    synchronized (processLock) {
-//                        process = processBuilder.start();
-//                    }
-//                    grpcUP = true;
-//
-//                    BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-//                    String line;
-//                    while ((line = reader.readLine()) != null) {
-//                        System.out.println(line);
-//                    }
-//
-//                    int exitCode = process.waitFor();
-//                    System.out.println("Python MIDI-Server exited with code: " + exitCode);
-//                    grpcUP = false;
-//
-//                } catch (IOException | InterruptedException e) {
-//                    e.printStackTrace();
-//                }
-//            }
-//        };
+        Runnable binaryRunner = new Runnable() {
+            @Override
+            public void run() {
+                ProcessBuilder processBuilder = new ProcessBuilder(binaryPath);
+
+                try {
+                    synchronized (processLock) {
+                        process = processBuilder.start();
+                    }
+
+
+                    BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+                    String line;
+                    grpcUP = true;
+
+
+                    while ((line = reader.readLine()) != null) {
+                        System.out.println(line);
+                    }
+
+                    int exitCode = process.waitFor();
+                    System.out.println("Python MIDI-Server exited with code: " + exitCode);
+                    grpcUP = false;
+
+                } catch (IOException | InterruptedException e) {
+                    Logger.error(e.toString());
+                }
+            }
+        };
 
 
 
 
-//        Thread thread = new Thread(binaryRunner);
-//        thread.start();
+        Thread thread = new Thread(binaryRunner);
+        thread.start();
 
         ManagedChannel channel = ManagedChannelBuilder.forAddress("localhost", 50051)
                 .usePlaintext()
@@ -100,7 +103,7 @@ public class MidiColorController {
                 try {
                     for (Integer key : requestQue.keySet()) {
                         ActivateColorRequest activateColorRequest = requestQue.get(key);
-                        makeRequestWithRetry(activateColorRequest, key);
+                        makeRequestWithRetry(activateColorRequest, 0);
                     }
                 }catch (Exception ignore){}
             }
@@ -166,18 +169,23 @@ public class MidiColorController {
 
 
 
-    private void makeRequestWithRetry(ActivateColorRequest request, int pad) {
+    private void makeRequestWithRetry(ActivateColorRequest request, int errorAttempts) {
         if(grpcUP){
             grpcStub.activateColor(request, new StreamObserver<>() {
+
                 @Override
                 public void onNext(ActivateColorResponse response) {
                 }
 
                 @Override
                 public void onError(Throwable t) {
+                    int e = errorAttempts + 1;
+
                     try {
-                        sleep(5);
-                        makeRequestWithRetry(request, pad);
+                      if(errorAttempts < 5){
+                          sleep(5);
+                          makeRequestWithRetry(request, e);
+                      }
                     } catch (Exception ignore) {
                     }
                 }
