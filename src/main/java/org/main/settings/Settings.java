@@ -14,6 +14,7 @@ public class Settings {
             INSTANCE = new Settings();
             Logger.init(INSTANCE.getClass());
         }
+        SettingsFrame.getInstance();
         return INSTANCE;
     }
 
@@ -28,8 +29,7 @@ public class Settings {
     private boolean fullScreenBorderLess = false;
 
 
-
-
+    private boolean visible = false;
 
     public CDJSettings getCdjSettings() {
         return cdjSettings;
@@ -40,9 +40,15 @@ public class Settings {
         return fullScreen;
     }
 
-    public void setFullScreen(boolean fullScreen) {
-        this.fullScreen = fullScreen;
+    public void toggleVisible() {
+        this.visible = !this.visible;
+        SettingsFrame.getInstance().setVisible(this.visible);
     }
+
+    public void update(){
+        SettingsFrame.getInstance().update();
+    }
+
 
     public boolean isFullScreenBorderLess() {
         return fullScreenBorderLess;

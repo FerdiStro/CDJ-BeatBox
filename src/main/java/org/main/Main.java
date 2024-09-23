@@ -4,6 +4,7 @@ import org.deepsymmetry.beatlink.*;
 import org.deepsymmetry.beatlink.data.*;
 import org.main.settings.CDJSettings;
 import org.main.settings.Settings;
+import org.main.settings.SettingsFrame;
 import org.main.util.Logger;
 
 import javax.swing.*;
@@ -23,6 +24,8 @@ public class Main {
 
 
     public static void main(String[] args) throws SocketException, UnsupportedLookAndFeelException, ClassNotFoundException, InstantiationException, IllegalAccessException {
+
+
 
         UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
         Toolkit.getDefaultToolkit().sync();
@@ -106,6 +109,8 @@ public class Main {
                             });
 
                             try {
+                                Logger.info("testy");
+
                                 MetadataFinder.getInstance().start();
                                 ArtFinder.getInstance().start();
                                 WaveformFinder.getInstance().start();
@@ -120,8 +125,7 @@ public class Main {
                                 public void run() {
                                     updateMetaData();
                                     frame.setMetaData(metaData);
-
-
+                                    Settings.getInstance().update();
                                 }
                             }, 0, 1000);
                         }
@@ -155,9 +159,18 @@ public class Main {
 
                     frame.setMasterTempo(bpm);
 
+                    /*
+                        Update Seting-frame
+                    */
+                    new Timer().scheduleAtFixedRate(new TimerTask() {
+                        @Override
+                        public void run() {
+                            Settings.getInstance().update();
+                        }
+                    }, 0, 100);
+
                     while(true){
                         try {
-
                             int sleepTimer  =  60000  /  bpm;
 
                             sleep(sleepTimer);
@@ -174,11 +187,13 @@ public class Main {
                         }
 
                     }
+
                 }
             });
 
             beatGiver.start();
 
+            Settings.getInstance().toggleVisible();
 
         }
     }
