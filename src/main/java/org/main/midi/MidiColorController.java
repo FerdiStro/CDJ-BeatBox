@@ -59,7 +59,7 @@ public class MidiColorController {
 
 
                     while ((line = reader.readLine()) != null) {
-                        System.out.println(line);
+//                        System.out.println(line);
                     }
 
                     int exitCode = process.waitFor();

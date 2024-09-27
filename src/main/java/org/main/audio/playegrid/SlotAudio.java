@@ -1,13 +1,24 @@
 package org.main.audio.playegrid;
 
 
+import org.main.Frame;
+import org.main.audio.SHOT_TYPE;
 import org.main.audio.library.TYPE;
 
 import javax.sound.sampled.*;
 import java.io.File;
-import java.lang.reflect.Type;
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+
+import be.tarsos.dsp.AudioDispatcher;
+import be.tarsos.dsp.io.jvm.AudioDispatcherFactory;
+import be.tarsos.dsp.onsets.OnsetHandler;
+import be.tarsos.dsp.onsets.PercussionOnsetDetector;
+import org.main.util.Logger;
+
+import static java.lang.Thread.sleep;
 
 public class SlotAudio {
 
@@ -31,32 +42,124 @@ public class SlotAudio {
 
     private boolean isPlaying = true;
 
+
    //todo: add dynamic audio
-    public void play(){
-        try {
-            if(isPlaying){
-                this.isPlaying = false;
-                AudioInputStream audioStream = AudioSystem.getAudioInputStream(audioFile);
-                AudioFormat format = audioStream.getFormat();
-                byte[] audioBytes = audioStream.readAllBytes();
+    public synchronized  void  play(SHOT_TYPE shotType){
+        Thread playThread = new Thread(() -> {
+            try {
+                if(isPlaying){
+                    this.isPlaying = false;
+                    AudioInputStream audioStream = AudioSystem.getAudioInputStream(audioFile);
+                    AudioFormat format = audioStream.getFormat();
+                    byte[] audioBytes = audioStream.readAllBytes();
 
-                adjustVolume(audioBytes, format, volume);
+                    adjustVolume(audioBytes, format, volume);
 
 
-                Clip clip = AudioSystem.getClip();
-                clip.open(format, audioBytes, 0, audioBytes.length);
-                clip.start();
-                clip.addLineListener(event -> {
-                    if (event.getType() == LineEvent.Type.STOP) {
-                        clip.close();
-                        isPlaying = true;
+                    Clip clip = AudioSystem.getClip();
+                    clip.open(format, audioBytes, 0, audioBytes.length);
+
+                    /*
+                        Play one beat
+                     */
+                    if(shotType == SHOT_TYPE.ONE_BEST){
+                        clip.start();
+
+                        clip.addLineListener(event -> {
+                            if (event.getType() == LineEvent.Type.STOP) {
+                                clip.close();
+                                isPlaying = true;
+                                Thread.currentThread().interrupt();
+
+                            }
+                        });
                     }
-                });
+                    /*
+                        Play two beats
+                     */
+                    if(shotType == SHOT_TYPE.TWO_BEAT){
+                        double waitTimer = (1000  / (Frame.getInstance().getMasterTempo() /  60)) / 2;
 
+                        Clip twoClip = AudioSystem.getClip();
+                        twoClip.open(format, audioBytes, 0, audioBytes.length);
+
+                        clip.start();
+
+                        sleep((long) waitTimer);
+
+                        twoClip.start();
+
+                        clip.addLineListener(event -> {
+                            if (event.getType() == LineEvent.Type.STOP) {
+                                clip.close();
+                            }
+                        });
+
+                        twoClip.addLineListener(event -> {
+                            if (event.getType() == LineEvent.Type.STOP) {
+                                twoClip.close();
+                                isPlaying = true;
+                                Thread.currentThread().interrupt();
+
+                            }
+                        });
+                    }
+
+                    /*
+                        Play four beats
+                     */
+                    if(shotType == SHOT_TYPE.FOUR_BEAT){
+                        double waitTimer = (1000  / (Frame.getInstance().getMasterTempo() /  60)) / 4;
+
+                        Clip twoClip = AudioSystem.getClip();
+                        Clip treeClip = AudioSystem.getClip();
+                        Clip fourClip = AudioSystem.getClip();
+
+                        twoClip.open(format, audioBytes, 0, audioBytes.length);
+                        treeClip.open(format, audioBytes, 0, audioBytes.length);
+                        fourClip.open(format, audioBytes, 0, audioBytes.length);
+
+                        clip.start();
+                        sleep((long) waitTimer);
+                        twoClip.start();
+                        sleep((long) waitTimer);
+                        treeClip.start();
+                        sleep((long) waitTimer);
+                        fourClip.start();
+
+                        clip.addLineListener(event -> {
+                            if (event.getType() == LineEvent.Type.STOP) {
+                                clip.close();
+                            }
+                        });
+                        twoClip.addLineListener(event -> {
+                            if (event.getType() == LineEvent.Type.STOP) {
+                                twoClip.close();
+                            }
+                        });
+                        treeClip.addLineListener(event -> {
+                            if (event.getType() == LineEvent.Type.STOP) {
+                                treeClip.close();
+                            }
+                        });
+                        fourClip.addLineListener(event -> {
+                            if (event.getType() == LineEvent.Type.STOP) {
+                                fourClip.close();
+                                isPlaying = true;
+                                Thread.currentThread().interrupt();
+
+
+                            }
+                        });
+                    }
+
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
             }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        });
+        playThread.start();
+
     }
 
     private void adjustVolume(byte[] audioBytes, AudioFormat format, float volume) {

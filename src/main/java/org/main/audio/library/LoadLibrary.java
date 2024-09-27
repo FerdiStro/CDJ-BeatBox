@@ -1,6 +1,12 @@
 package org.main.audio.library;
 
+import be.tarsos.dsp.AudioDispatcher;
+import be.tarsos.dsp.io.jvm.AudioDispatcherFactory;
+import be.tarsos.dsp.onsets.OnsetHandler;
+import be.tarsos.dsp.onsets.PercussionOnsetDetector;
 import org.main.audio.playegrid.SlotAudio;
+import org.main.util.BpmCalculator;
+import org.main.util.Logger;
 
 import javax.sound.sampled.*;
 import javax.swing.*;
@@ -60,6 +66,7 @@ public class LoadLibrary {
         List<String> filePaths = new ArrayList<>();
         Path dir = Paths.get(path);
         try (Stream<Path> stream = Files.walk(dir)) {
+
             stream.filter(Files::isRegularFile).forEach(filePath -> {
                 try {
                     filePaths.add(filePath.toString());
@@ -82,6 +89,15 @@ public class LoadLibrary {
                         }
                         parent = child;
                     }
+
+                    /*
+                        todo:BPM and KEY
+                     */
+
+//                    File audioFile = new File("/Users/ferdinand/IdeaProjects/CDJ-BeatBox/src/main/resources/OnShoot/seq/Mzperx_SEQ_06_Accidd_135bpm.wav");
+//                    new BpmCalculator().calculateBpm(audioFile);
+
+
 
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -134,6 +150,19 @@ public class LoadLibrary {
         sound.setFilePaths(filePaths);
 
         return sound;
+    }
+
+    double firstOnset = -1;
+    double lastOnset = -1;
+    int onsetCount = 0;
+
+    private double calculateBPM(double onsetCount, double lastOnset, double firstOnset) {
+        if (onsetCount > 1) {
+            double totalTime = lastOnset - firstOnset;
+            double avgOnsetTime = totalTime / (onsetCount - 1);
+            return 60 / avgOnsetTime;  // Umrechnung in BPM
+        }
+        return 0;
     }
 
 
