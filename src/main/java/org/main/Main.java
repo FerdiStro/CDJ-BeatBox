@@ -193,8 +193,6 @@ public class Main {
 
             beatGiver.start();
 
-            Settings.getInstance().toggleVisible();
-
         }
     }
 

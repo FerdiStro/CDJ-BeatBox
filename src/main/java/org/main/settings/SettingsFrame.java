@@ -15,7 +15,7 @@ import java.io.IOException;
 
 public class SettingsFrame extends JFrame {
     private static SettingsFrame INSTANCE;
-    private boolean frameVisible = true;
+    private boolean frameVisible = false;
 
     private final int with = 700;
     private final int height = 700;

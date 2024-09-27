@@ -2,6 +2,7 @@ package org.main;
 
 import org.deepsymmetry.beatlink.data.*;
 import org.main.audio.PlayShots;
+import org.main.audio.SHOT_TYPE;
 import org.main.audio.library.LibraryKind;
 import org.main.audio.library.LoadLibrary;
 import org.main.audio.PlayerGrid;
@@ -46,6 +47,7 @@ public class Frame extends JFrame {
 
     private int masterX;
     private int masterY;
+
     private double masterTempo = 0.0;
 
     private int setUpStringX;
@@ -290,6 +292,22 @@ public class Frame extends JFrame {
 
                     g2d.drawString("" + tempI, x, playGridY);
                     g2d.fillRect(x, playGridY + 4, playGridSize, playGridSize);
+
+                    if(toggleSwitchActive){
+                        g2d.setColor(Color.WHITE);
+                        switch (tempI){
+                            case 1:
+                                g2d.drawString(String.valueOf(SHOT_TYPE.ONE_BEST.getBeatHit()), x + fontSize , playGridY+ playGridSize - fontSize);
+                                break;
+                            case 2:
+                                g2d.drawString(String.valueOf(SHOT_TYPE.TWO_BEAT.getBeatHit()), x + fontSize, playGridY+ playGridSize - fontSize);
+                                break;
+                            case 3:
+                                g2d.drawString(String.valueOf(SHOT_TYPE.FOUR_BEAT.getBeatHit()), x + fontSize, playGridY+ playGridSize - fontSize);
+                                break;
+                        }
+                    }
+
                     g2d.setColor(Color.BLACK);
 
 
@@ -328,31 +346,51 @@ public class Frame extends JFrame {
                     if (!toggleVolumeSlider) {
                         List<SlotAudio> removeSlotAudio = new ArrayList<>();
 
-                        for (int j = 0; j != slot.getSelectedSounds().size(); j++) {
-                            int kordY = playGridY + sizeBeat + (int) (getHeight() * 0.08) + fontSize * (j + 1) + fontSize * 2;
-                            Koordinate koordinate = new Koordinate(x, kordY);
+                        /*
+                            Player grid list
+                         */
+                        if(!toggleSwitchActive){
+                            for (int j = 0; j != slot.getSelectedSounds().size(); j++) {
+                                int kordY = playGridY + sizeBeat + (int) (getHeight() * 0.08) + fontSize * (j + 1) + fontSize * 2;
+                                Koordinate koordinate = new Koordinate(x, kordY);
 
-                            if (kordSlotRemoveList.get(koordinate.getName()) != null) {
-                                SlotAudio slotAudio = slot.getSelectedSounds().get(j);
-                                removeSlotAudio.add(slotAudio);
-                                kordSlotRemoveList.remove(koordinate.getName());
-                            }else{
-                                kordSlotList.put(koordinate.getName(), koordinate);
+                                if (kordSlotRemoveList.get(koordinate.getName()) != null) {
+                                    SlotAudio slotAudio = slot.getSelectedSounds().get(j);
+                                    removeSlotAudio.add(slotAudio);
+                                    kordSlotRemoveList.remove(koordinate.getName());
+                                }else{
+                                    kordSlotList.put(koordinate.getName(), koordinate);
 
-                                if (kordSlotMarkList.get(koordinate.getName()) != null) {
-                                    g2d.setColor(Color.ORANGE);
-                                } else {
-                                    g2d.setColor(Color.LIGHT_GRAY);
+                                    if (kordSlotMarkList.get(koordinate.getName()) != null) {
+                                        g2d.setColor(Color.ORANGE);
+                                    } else {
+                                        g2d.setColor(Color.LIGHT_GRAY);
+                                    }
+
+
+                                    g2d.fillRect(x, kordY, playGridSize, fontSize);
+                                    g2d.setColor(Color.BLACK);
+                                    g2d.drawString(slot.getSelectedSounds().get(j).getName(), x, playGridY + sizeBeat + (int) (getHeight() * 0.08) + fontSize * (j + 1) + fontSize * 3);
                                 }
 
+                            }
+                        }
+                        /*
+                            One-shot list
+                        */
+                        if(toggleSwitchActive){
+                            int kordY = playGridY + playGridSize + fontSize*3;
+                            g2d.drawString("PlayList: ", playGridX , kordY);
 
-                                g2d.fillRect(x, kordY, playGridSize, fontSize);
-                                g2d.setColor(Color.BLACK);
-                                g2d.drawString(slot.getSelectedSounds().get(j).getName(), x, playGridY + sizeBeat + (int) (getHeight() * 0.08) + fontSize * (j + 1) + fontSize * 3);
+                            for(int j = 0; j !=  shotList.size(); j ++){
+                                int kordX = playGridX + sizeBeat + (int) (getHeight() * 0.08) + fontSize * (j + 1) + fontSize * 2;
+
+                                g2d.drawString(String.valueOf(shotList.get(j).getShotType().getBeatHit()), kordX , kordY);
 
                             }
-
                         }
+
+
                         if(!removeSlotAudio.isEmpty()) {
                             for (SlotAudio slotAudio : removeSlotAudio) {
                                 slot.getSelectedSounds().remove(slotAudio);
@@ -524,7 +562,6 @@ public class Frame extends JFrame {
 
                     ShortMessage sm = (ShortMessage) message;
 
-                    System.out.println("Da " + sm.getData1());
 
                     int padNum = midiColorController.padMapper(sm.getData1());
 
@@ -543,8 +580,20 @@ public class Frame extends JFrame {
                             if (!toggleSwitchActive) {
                                 playerGrid.getSlots()[padNum - 1].addSelectedSound(soundLibrary.getSelectedSlotAudio());
                             }
+
                             if (toggleSwitchActive) {
-                                shotList.add(new PlayShots(soundLibrary.getSelectedSlotAudio(), padNum));
+                                /*
+                                    Play slot in beat
+                                 */
+                                if(sm.getData1() == 36){
+                                    shotList.add(new PlayShots(soundLibrary.getSelectedSlotAudio(), padNum, SHOT_TYPE.ONE_BEST));
+                                }
+                                if(sm.getData1() == 37){
+                                    shotList.add(new PlayShots(soundLibrary.getSelectedSlotAudio(), padNum, SHOT_TYPE.TWO_BEAT));
+                                }
+                                if(sm.getData1() == 38){
+                                    shotList.add(new PlayShots(soundLibrary.getSelectedSlotAudio(), padNum, SHOT_TYPE.FOUR_BEAT));
+                                }
                             }
 
                         }
@@ -618,6 +667,9 @@ public class Frame extends JFrame {
         this.masterTempo = masterTempo;
         jLabel.repaint();
     }
+    public double getMasterTempo() {
+        return masterTempo;
+    }
 
     private final ScheduledExecutorService beatPlayer = Executors.newScheduledThreadPool(1);
 
@@ -625,16 +677,7 @@ public class Frame extends JFrame {
         long halfBeatMillis = (long) (60000 / (2 * masterTempo));
         try {
             for (PlayShots playShots : shotList) {
-                if (playShots.getPadNum() == 1) {
-                    playShots.play();
-                }
-                if (playShots.getPadNum() == 1) {
-                    playShots.play();
-//                    shotList.remove(playShots);
-                } else if (playShots.getPadNum() == 2) {
-                    playShots.play();
-                    beatPlayer.schedule(playShots::play, halfBeatMillis, TimeUnit.MILLISECONDS);
-                }
+                playShots.play();
                 shotList.remove(playShots);
             }
         } catch (Exception ignore) {

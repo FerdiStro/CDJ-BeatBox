@@ -1,5 +1,6 @@
 package org.main.audio.playegrid;
 
+import org.main.audio.SHOT_TYPE;
 import org.main.audio.library.TYPE;
 
 import javax.swing.event.ChangeEvent;
@@ -101,7 +102,7 @@ public class Slot implements ChangeListener {
     public void play(){
         try {
             for(SlotAudio audio: selectedSounds){
-                audio.play();
+                audio.play(SHOT_TYPE.ONE_BEST);
                 if(audio.getPlayType().equals(TYPE.ONESHOOT)){
                     this.getSelectedSounds().remove(audio);
                 }
