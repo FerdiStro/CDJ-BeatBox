@@ -556,13 +556,12 @@ public class Frame extends JFrame {
 
             @Override
             public void send(MidiMessage message, long timeStamp) {
-
                 if (message instanceof ShortMessage && timeStamp > timeMidi) {
                     timeMidi = timeStamp + 000_000_700_000;
 
                     ShortMessage sm = (ShortMessage) message;
 
-
+                    Logger.info(String.valueOf(sm.getData1()));
                     int padNum = midiColorController.padMapper(sm.getData1());
 
                     if (sm.getData1() == 113) {

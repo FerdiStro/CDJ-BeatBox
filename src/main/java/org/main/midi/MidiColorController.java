@@ -8,6 +8,7 @@ import net.devh.boot.grpc.card.service.lib.ActivateColorRequest;
 import net.devh.boot.grpc.card.service.lib.ActivateColorResponse;
 import net.devh.boot.grpc.card.service.lib.MidiServiceGrpc;
 import org.main.Frame;
+import org.main.settings.Settings;
 import org.main.util.Logger;
 
 import javax.sound.midi.*;
@@ -24,7 +25,9 @@ public class MidiColorController {
     private static MidiColorController INSTANCE;
     private MidiServiceGrpc.MidiServiceStub grpcStub;
 
-    public static MidiColorController getInstance(){
+
+
+    public static MidiColorController getInstance( ){
         if(INSTANCE==null){
             INSTANCE =  new MidiColorController();
             Logger.init(INSTANCE.getClass());
@@ -112,30 +115,40 @@ public class MidiColorController {
         setTransmitter();
     }
 
-    private Receiver receiver;
+    private static Transmitter transmitter;
+    private static Receiver receiver;
+
 
     public void setReceiver(Receiver receiver){
-        this.receiver = receiver;
+        MidiColorController.receiver = receiver;
+        if(transmitter != null){
+            transmitter.setReceiver(receiver);
+        }
     }
 
-    private void setTransmitter(){
+    public void setTransmitter(){
         Thread setTranmitterThread  = new Thread(new Runnable() {
             int count = 5;
             @Override
             public void run()  {
                 try {
-                  Transmitter transmitter =   getTransmitter();
-                  transmitter.setReceiver(receiver);
+
+                    //todo: trennen klassen und besser....
+
+                    MidiColorController.transmitter = getTransmitter();
+                    if(MidiColorController.transmitter != null){
+                        MidiColorController.transmitter.setReceiver(receiver);
+                    }
                 }catch (Exception e){
                     try {
-                        System.out.println("Transmitter failed to start, retry in "+count+"s : " + e.getMessage());
+                        Logger.debug("Transmitter failed to start, retry in "+count+"s : " + e.getMessage());
                         sleep(count * 1000L);
-                        System.out.println(count);
+                        Logger.debug(String.valueOf(count));
                         count = count + 2;
                         if(count < 60){
                             run();
                         }else{
-                            System.out.println("To many attempts, no Midi-device found");
+                            Logger.error("To many attempts, no Midi-device found");
                         }
                     } catch (Exception treadProblem) {
                         treadProblem.printStackTrace();
@@ -146,12 +159,14 @@ public class MidiColorController {
         setTranmitterThread.start();
     }
 
+
+
     private Transmitter getTransmitter() throws Exception{
 
         List<MidiDevice> devicesList = new ArrayList<>();
 
         for (MidiDevice.Info device : MidiSystem.getMidiDeviceInfo()) {
-            if (device.getName().contains("Arturia MiniLab mkII")) {
+            if (device.getName().contains(Settings.getInstance().getMidiTransmitterName())) {
                 devicesList.add(MidiSystem.getMidiDevice(device));
             }
         }
@@ -163,6 +178,7 @@ public class MidiColorController {
                 throw new RuntimeException(e);
             }
         });
+
 
         return devicesList.get(1).getTransmitter();
     }
