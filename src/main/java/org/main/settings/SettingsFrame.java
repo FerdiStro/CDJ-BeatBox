@@ -1,6 +1,9 @@
 package org.main.settings;
 
-import org.main.audio.library.LoadLibrary;
+
+import org.main.midi.MidiController;
+import org.main.settings.graphics.Component;
+import org.main.settings.graphics.CustomDropdown;
 import org.main.settings.graphics.SettingsDescribeFrame;
 import org.main.util.Koordinate;
 import org.main.util.Logger;
@@ -31,6 +34,7 @@ public class SettingsFrame extends JFrame {
     /*
         MIDI-MK2
      */
+
     private boolean visMidiMk2 = true;
     private final int buttonMidiMk2X = 20;
     private final int buttonMidiMk2Y = 20;
@@ -65,6 +69,7 @@ public class SettingsFrame extends JFrame {
 
 
     private SettingsFrame() {
+        Logger.init(this.getClass());
         setTitle("Settings");
         setVisible(frameVisible);
         setSize(with, height);
@@ -81,9 +86,21 @@ public class SettingsFrame extends JFrame {
             throw new RuntimeException(e);
         }
 
+        CustomDropdown dropdown = new CustomDropdown(MidiController.getInstance(null).getMidiTransmittersNamesList(), buttonMidiMk2X , 100, new Dimension(100,30 ) );
+
+        dropdown.addClickListener(new Component.ComponentClickListener() {
+            @Override
+            public void onOptionClicked(String  transmitterName) {
+                Settings.getInstance().setMidiTransmitterName(transmitterName);
+                MidiController.getInstance(null).setTransmitter();
+            }
+        });
+
 
 
         JLabel label = new JLabel() {
+
+
 
             protected void paintComponent(Graphics g) {
                 super.paintComponent(g);
@@ -96,8 +113,12 @@ public class SettingsFrame extends JFrame {
                 g2d.fillRect(buttonMidiMk2X, buttonMidiMk2Y, buttonWidth, buttonHeight);
                 g2d.setColor(Color.BLACK);
                 g2d.drawString(buttonMidiMk2Title, buttonMidiMk2X + 2 ,buttonMidiMk2Y + g.getFont().getSize());
+
+
+
                 //MidiMk2
                 if(visMidiMk2){
+                    dropdown.draw(g2d);
 
                     g2d.drawImage(midiMk2Device, midiX, midiY, midiWidth, midiHeight, null);
 
@@ -117,11 +138,16 @@ public class SettingsFrame extends JFrame {
 
 
         };
+
+
+
         label.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
                 int mouseX = e.getX();
                 int mouseY = e.getY();
+
+                dropdown.clickEvent(e);
 
                 Rectangle buttonMidiMk2 = new Rectangle(buttonMidiMk2X, buttonMidiMk2Y, buttonWidth, buttonHeight);
                 if(buttonMidiMk2.contains(mouseX, mouseY)){
@@ -130,6 +156,7 @@ public class SettingsFrame extends JFrame {
             }
 
         });
+
 
         label.addMouseMotionListener(new MouseMotionAdapter() {
 
@@ -152,7 +179,17 @@ public class SettingsFrame extends JFrame {
 
         add(label);
 
+        /*
+            Save settings when closing window
+         */
+        addWindowListener(new WindowAdapter() {
+            public void windowClosing(WindowEvent e) {
+                Settings.getInstance().saveSettings();
+            }
+        });
     }
+
+
 
 
     public void toggleFrameVisible() {

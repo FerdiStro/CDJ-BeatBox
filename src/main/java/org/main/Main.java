@@ -25,7 +25,7 @@ public class Main {
 
     public static void main(String[] args) throws SocketException, UnsupportedLookAndFeelException, ClassNotFoundException, InstantiationException, IllegalAccessException {
 
-
+        Settings.getInstance().loadSettings();
 
         UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
         Toolkit.getDefaultToolkit().sync();
