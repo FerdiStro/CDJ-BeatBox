@@ -1,8 +1,13 @@
 package org.main.settings;
 
+import lombok.Getter;
+import lombok.Setter;
+import org.main.BeatBoxWindow;
 import org.main.midi.MidiController;
+import org.main.settings.objects.BeatBoxWindowSettings;
+import org.main.settings.objects.CDJSettings;
 import org.main.settings.objects.MidiControllerSettings;
-import org.main.settings.objects.SettingsObject;
+import org.main.settings.objects.AbstractSettings;
 import org.main.util.Logger;
 
 import java.util.ArrayList;
@@ -30,23 +35,33 @@ public class Settings {
      /*
         Load-Settings
     */
+     List<AbstractSettings> settingsObjects = new ArrayList<>();
 
     MidiControllerSettings midiControllerSettings;
 
-    List<SettingsObject> settingsObjects = new ArrayList<>();
+    @Getter
+    CDJSettings cdjSettings;
+
+    @Getter
+    BeatBoxWindowSettings beatBoxWindowSettings;
 
     public void loadSettings() {
         Logger.info("Start Loading all settings");
 
-        //Midi Settings
+        //Midi settings
         midiControllerSettings = getSettingsObject(new MidiControllerSettings());
         MidiController.getInstance(midiControllerSettings);
+        //CDJ settings
+        cdjSettings = getSettingsObject(new CDJSettings());
+        //Window settings
+        beatBoxWindowSettings = getSettingsObject(new BeatBoxWindowSettings());
 
     }
 
-    private   <T extends  SettingsObject> T getSettingsObject(T settingsObject){
+    private   <T extends AbstractSettings> T getSettingsObject(T settingsObject){
         T load = settingsObject.load(settingsObject);
         settingsObjects.add(load);
+        Logger.debug("Loaded settings object: " + settingsObject);
         return load;
     }
 
@@ -54,7 +69,7 @@ public class Settings {
          Save-Settings
      */
     public void saveSettings() {
-        for(SettingsObject settingsObject : settingsObjects){
+        for(AbstractSettings settingsObject : settingsObjects){
             settingsObject.save(midiControllerSettings);
         }
     }
@@ -64,12 +79,6 @@ public class Settings {
     }
 
 
-
-
-    private CDJSettings cdjSettings = new CDJSettings();
-
-    private boolean fullScreen = false;
-    private boolean fullScreenBorderLess = false;
 
 
 
@@ -88,33 +97,30 @@ public class Settings {
 
     private boolean visible = false;
 
-    public CDJSettings getCdjSettings() {
-        return cdjSettings;
-    }
 
 
 
-    public boolean isFullScreen() {
-        return fullScreen;
-    }
+
+
+
 
     public void toggleVisible() {
         this.visible = !this.visible;
-        SettingsFrame.getInstance().setVisible(this.visible);
+        SettingsWindow.getInstance().setVisible(this.visible);
     }
 
     public void update(){
-        SettingsFrame.getInstance().update();
+        SettingsWindow.getInstance().update();
     }
 
 
-    public boolean isFullScreenBorderLess() {
-        return fullScreenBorderLess;
-    }
 
-    public void setFullScreenBorderLess(boolean fullScreenBorderLess) {
-        this.fullScreenBorderLess = fullScreenBorderLess;
-    }
+
+
+
+
+
+
 
 
 

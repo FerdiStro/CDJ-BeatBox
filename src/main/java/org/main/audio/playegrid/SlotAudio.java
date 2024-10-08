@@ -1,22 +1,14 @@
 package org.main.audio.playegrid;
 
 
-import org.main.Frame;
+import org.main.BeatBoxWindow;
 import org.main.audio.SHOT_TYPE;
 import org.main.audio.library.TYPE;
 
 import javax.sound.sampled.*;
 import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-
-import be.tarsos.dsp.AudioDispatcher;
-import be.tarsos.dsp.io.jvm.AudioDispatcherFactory;
-import be.tarsos.dsp.onsets.OnsetHandler;
-import be.tarsos.dsp.onsets.PercussionOnsetDetector;
-import org.main.util.Logger;
 
 import static java.lang.Thread.sleep;
 
@@ -78,7 +70,7 @@ public class SlotAudio {
                         Play two beats
                      */
                     if(shotType == SHOT_TYPE.TWO_BEAT){
-                        double waitTimer = (1000  / (Frame.getInstance().getMasterTempo() /  60)) / 2;
+                        double waitTimer = (1000  / (BeatBoxWindow.getInstance().getMasterTempo() /  60)) / 2;
 
                         Clip twoClip = AudioSystem.getClip();
                         twoClip.open(format, audioBytes, 0, audioBytes.length);
@@ -109,7 +101,7 @@ public class SlotAudio {
                         Play four beats
                      */
                     if(shotType == SHOT_TYPE.FOUR_BEAT){
-                        double waitTimer = (1000  / (Frame.getInstance().getMasterTempo() /  60)) / 4;
+                        double waitTimer = (1000  / (BeatBoxWindow.getInstance().getMasterTempo() /  60)) / 4;
 
                         Clip twoClip = AudioSystem.getClip();
                         Clip treeClip = AudioSystem.getClip();

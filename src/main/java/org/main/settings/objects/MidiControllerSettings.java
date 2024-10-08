@@ -1,14 +1,16 @@
 package org.main.settings.objects;
 
 
+import lombok.Getter;
+import lombok.Setter;
 
 
-
-public class MidiControllerSettings  extends SettingsObject {
+public class MidiControllerSettings  extends AbstractSettings {
 
     private static final String PATH = "src/main/resources/configs/midiControllerConfig.json";
 
-
+    @Getter
+    @Setter
     private String MidiControllerName;
     private String MidiControllerNameInit;
 
@@ -20,16 +22,9 @@ public class MidiControllerSettings  extends SettingsObject {
         return PATH;
     }
 
-
-
-    public void resetMidiControllerName() {
+    @Override
+    public void reset() {
         this.MidiControllerName = MidiControllerNameInit;
     }
 
-    public String getMidiControllerName() {
-        return MidiControllerName;
-    }
-    public void setMidiControllerName(String midiControllerName) {
-        this.MidiControllerName = midiControllerName;
-    }
 }

@@ -2,9 +2,9 @@ package org.main.settings;
 
 
 import org.main.midi.MidiController;
-import org.main.settings.graphics.Component;
-import org.main.settings.graphics.CustomDropdown;
-import org.main.settings.graphics.SettingsDescribeFrame;
+import org.main.util.graphics.AbstractComponent;
+import org.main.util.graphics.CustomDropdown;
+import org.main.util.graphics.SettingsDescribeFrame;
 import org.main.util.Koordinate;
 import org.main.util.Logger;
 
@@ -16,8 +16,8 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 
-public class SettingsFrame extends JFrame {
-    private static SettingsFrame INSTANCE;
+public class SettingsWindow extends JFrame {
+    private static SettingsWindow INSTANCE;
     private boolean frameVisible = false;
 
     private final int with = 700;
@@ -48,17 +48,17 @@ public class SettingsFrame extends JFrame {
     private final int midiBlackKnobX1 = midiX + 147;
     private final int midiBlackKnobY1= midiY + 43;
     private boolean midiBlackKnob1 = false;
-    private final SettingsDescribeFrame midiBlackKnob1SettingsFrame = new SettingsDescribeFrame("KNOB 1", "toggle-Slot on/off" ,"Activate Play slot. Switching from normal Sound and On-Shot sound" , new Koordinate(midiBlackKnobX1, midiBlackKnobY1));
+    private final SettingsDescribeFrame midiBlackKnob1SettingsFrame = new SettingsDescribeFrame( new Koordinate(midiBlackKnobX1, midiBlackKnobY1), "KNOB 1", "toggle-Slot on/off" ,"Activate Play slot. Switching from normal Sound and On-Shot sound");
 
     private final int midiBlackKnobX2 =midiBlackKnobX1;
     private final int midiBlackKnobY2= midiY + 96;
     private boolean midiBlackKnob2 = false;
-    private final SettingsDescribeFrame midiBlackKnob2SettingsFrame = new SettingsDescribeFrame("", "toggle-Mixer on/off", "Activate mixer for each slot, and switch between mixer and list of sound added to slot. " , new Koordinate(midiBlackKnobX2, midiBlackKnobY2));
+    private final SettingsDescribeFrame midiBlackKnob2SettingsFrame = new SettingsDescribeFrame( new Koordinate(midiBlackKnobX1, midiBlackKnobY1), "KNOB 2", "toggle-Mixer on/off", "Activate mixer for each slot, and switch between mixer and list of sound added to slot. ");
 
 
-    protected static SettingsFrame getInstance() {
+    protected static SettingsWindow getInstance() {
         if (INSTANCE == null) {
-            INSTANCE = new SettingsFrame();
+            INSTANCE = new SettingsWindow();
         }
         return INSTANCE;
     }
@@ -68,7 +68,7 @@ public class SettingsFrame extends JFrame {
     }
 
 
-    private SettingsFrame() {
+    private SettingsWindow() {
         Logger.init(this.getClass());
         setTitle("Settings");
         setVisible(frameVisible);
@@ -86,9 +86,9 @@ public class SettingsFrame extends JFrame {
             throw new RuntimeException(e);
         }
 
-        CustomDropdown dropdown = new CustomDropdown(MidiController.getInstance(null).getMidiTransmittersNamesList(), buttonMidiMk2X , 100, new Dimension(100,30 ) );
+        CustomDropdown dropdown = new CustomDropdown(MidiController.getInstance(null).getMidiTransmittersNamesList(), new Koordinate(buttonMidiMk2X, 100), new Dimension(100,30 ) );
 
-        dropdown.addClickListener(new Component.ComponentClickListener() {
+        dropdown.addClickListener(new AbstractComponent.ComponentClickListener() {
             @Override
             public void onOptionClicked(String  transmitterName) {
                 Settings.getInstance().setMidiTransmitterName(transmitterName);

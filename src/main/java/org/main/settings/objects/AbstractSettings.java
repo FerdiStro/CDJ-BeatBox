@@ -8,9 +8,11 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 
 
-public abstract class  SettingsObject {
+public abstract class AbstractSettings {
 
     public abstract String getPATH();
+    public abstract void reset();
+
     private static final Gson gson = new Gson();
 
     public <T> T load(T t) {
@@ -24,6 +26,7 @@ public abstract class  SettingsObject {
         String json = gson.toJson(t, t.getClass());
         try {
             Files.write( Paths.get(getPATH()), json.getBytes());
+            Logger.debug("Saved settings to: " + getPATH() + ". Class: " + this.getClass().getName());
         } catch (IOException e) {
             Logger.error("Error saving settings to " + getPATH() + ". Class: " + this.getClass().getName());
         }

@@ -111,27 +111,9 @@ public class MidiController {
         }
     }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     /*
         Transmitter
      */
-
-
-
-
     public List<String> getMidiTransmittersNamesList(){
         List<String> midiTransmittersNamesList = new ArrayList<>();
 
@@ -174,12 +156,10 @@ public class MidiController {
     /*
         Grpc-Color Switch
      */
-
     private Process process;
     private final Object processLock = new Object();
 
     private boolean grpcUP = false;
-
 
     private void makeRequestWithRetry(ActivateColorRequest request, int errorAttempts) {
         if(grpcUP){
