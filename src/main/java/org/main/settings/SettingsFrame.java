@@ -1,7 +1,7 @@
 package org.main.settings;
 
 
-import org.main.midi.MidiColorController;
+import org.main.midi.MidiController;
 import org.main.settings.graphics.Component;
 import org.main.settings.graphics.CustomDropdown;
 import org.main.settings.graphics.SettingsDescribeFrame;
@@ -69,6 +69,7 @@ public class SettingsFrame extends JFrame {
 
 
     private SettingsFrame() {
+        Logger.init(this.getClass());
         setTitle("Settings");
         setVisible(frameVisible);
         setSize(with, height);
@@ -85,15 +86,17 @@ public class SettingsFrame extends JFrame {
             throw new RuntimeException(e);
         }
 
-        CustomDropdown dropdown = new CustomDropdown(  Settings.getInstance().getMidiTransmittersNamesList(), buttonMidiMk2X , 100, new Dimension(100,30 ) );
+        CustomDropdown dropdown = new CustomDropdown(MidiController.getInstance(null).getMidiTransmittersNamesList(), buttonMidiMk2X , 100, new Dimension(100,30 ) );
 
         dropdown.addClickListener(new Component.ComponentClickListener() {
             @Override
-            public void onOptionClicked(String options) {
-                Settings.getInstance().setMidiTransmitterName(options);
-                MidiColorController.getInstance().setTransmitter();
+            public void onOptionClicked(String  transmitterName) {
+                Settings.getInstance().setMidiTransmitterName(transmitterName);
+                MidiController.getInstance(null).setTransmitter();
             }
         });
+
+
 
         JLabel label = new JLabel() {
 
@@ -175,6 +178,15 @@ public class SettingsFrame extends JFrame {
 
 
         add(label);
+
+        /*
+            Save settings when closing window
+         */
+        addWindowListener(new WindowAdapter() {
+            public void windowClosing(WindowEvent e) {
+                Settings.getInstance().saveSettings();
+            }
+        });
     }
 
 

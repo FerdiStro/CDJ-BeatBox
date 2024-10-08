@@ -1,11 +1,10 @@
 package org.main.settings;
 
-import org.main.midi.MidiColorController;
+import org.main.midi.MidiController;
+import org.main.settings.objects.MidiControllerSettings;
+import org.main.settings.objects.SettingsObject;
 import org.main.util.Logger;
 
-import javax.sound.midi.MidiDevice;
-import javax.sound.midi.MidiSystem;
-import javax.sound.midi.MidiUnavailableException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -28,40 +27,62 @@ public class Settings {
     }
 
 
+     /*
+        Load-Settings
+    */
+
+    MidiControllerSettings midiControllerSettings;
+
+    List<SettingsObject> settingsObjects = new ArrayList<>();
+
+    public void loadSettings() {
+        Logger.info("Start Loading all settings");
+
+        //Midi Settings
+        midiControllerSettings = getSettingsObject(new MidiControllerSettings());
+        MidiController.getInstance(midiControllerSettings);
+
+    }
+
+    private   <T extends  SettingsObject> T getSettingsObject(T settingsObject){
+        T load = settingsObject.load(settingsObject);
+        settingsObjects.add(load);
+        return load;
+    }
+
+    /*
+         Save-Settings
+     */
+    public void saveSettings() {
+        for(SettingsObject settingsObject : settingsObjects){
+            settingsObject.save(midiControllerSettings);
+        }
+    }
+
+    public void setMidiTransmitterName(String midiTransmitterName){
+        midiControllerSettings.setMidiControllerName(midiTransmitterName);
+    }
+
+
+
+
     private CDJSettings cdjSettings = new CDJSettings();
 
     private boolean fullScreen = false;
     private boolean fullScreenBorderLess = false;
 
-    private String midiTransmitterName = "mkII [hw:1,0,0]";
-    private List<String> midiTransmittersNamesList = new ArrayList<>();
 
 
-    public List<String> getMidiTransmittersNamesList(){
-        MidiDevice.Info[] midiDeviceInfo = MidiSystem.getMidiDeviceInfo();
-        for(MidiDevice.Info deviceInfo : midiDeviceInfo){
-            try {
-                MidiDevice midiDevice = MidiSystem.getMidiDevice(deviceInfo);
-                if(midiDevice.getMaxReceivers()  >= 0 ){
-                    midiTransmittersNamesList.add(deviceInfo.getName());
-                }
-            } catch (MidiUnavailableException e) {
-                Logger.error("Error while reading Midi List in Settings.class");
-                throw new RuntimeException(e);
-            }
-        }
-        if(midiTransmittersNamesList.isEmpty()){
-            midiTransmittersNamesList.add("NO-Midi");
-        }
-        return midiTransmittersNamesList;
-    }
 
-    public String getMidiTransmitterName(){
-        return this.midiTransmitterName;
-    }
-    public void setMidiTransmitterName(String midiTransmitterName){
-        this.midiTransmitterName = midiTransmitterName;
-    }
+
+
+
+
+
+
+
+
+
 
 
 
@@ -94,4 +115,12 @@ public class Settings {
     public void setFullScreenBorderLess(boolean fullScreenBorderLess) {
         this.fullScreenBorderLess = fullScreenBorderLess;
     }
+
+
+
+
+
+
+
+
 }

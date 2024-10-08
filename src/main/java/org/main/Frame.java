@@ -8,11 +8,11 @@ import org.main.audio.library.LoadLibrary;
 import org.main.audio.PlayerGrid;
 import org.main.audio.playegrid.Slot;
 import org.main.audio.playegrid.SlotAudio;
-import org.main.midi.MidiColorController;
+import org.main.midi.MidiController;
 import org.main.settings.Settings;
-import org.main.settings.SettingsFrame;
 import org.main.util.Koordinate;
 import org.main.util.Logger;
+import org.main.util.MidiByteMapper;
 
 import javax.imageio.ImageIO;
 import javax.sound.midi.*;
@@ -27,7 +27,6 @@ import java.util.*;
 import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
 import static java.lang.Thread.sleep;
 
@@ -110,7 +109,7 @@ public class Frame extends JFrame {
 
     private final LoadLibrary soundLibrary = LoadLibrary.getInstance();
 
-    private final MidiColorController midiColorController = MidiColorController.getInstance();
+    private final MidiController midiController = MidiController.getInstance(null);
 
     public synchronized static Frame getInstance() {
         if (INSTANCE == null) {
@@ -280,14 +279,14 @@ public class Frame extends JFrame {
                         Slot
                     */
                     if (slot.isActive() && !toggleSwitchActive) {
-                        midiColorController.switchColorAsync(i + 1, "01");
+                        Frame.this.midiController.switchColorAsync(i + 1, "01");
                         g2d.setColor(Color.RED);
                     } else if (toggleSwitchActive) {
-                        midiColorController.switchColorAsync(i + 1, "11");
+                        Frame.this.midiController.switchColorAsync(i + 1, "11");
                         g2d.setColor(Color.BLACK);
                     } else {
                         g2d.setColor(Color.BLACK);
-                        midiColorController.switchColorAsync(i + 1, "7F");
+                        Frame.this.midiController.switchColorAsync(i + 1, "7F");
                     }
 
                     g2d.drawString("" + tempI, x, playGridY);
@@ -313,10 +312,10 @@ public class Frame extends JFrame {
 
                     if (playerGridCounterBeat == tempI) {
                         g2d.setColor(Color.ORANGE);
-                        midiColorController.switchColorAsync(i + 1, "14");
+                        Frame.this.midiController.switchColorAsync(i + 1, "14");
 
                         if (tempI == 1) {
-                            midiColorController.switchColorAsync(playerGrid.getSlots().length, "7F");
+                            Frame.this.midiController.switchColorAsync(playerGrid.getSlots().length, "7F");
                         }
 
                         g2d.fillOval(x + playGridSize / 2 - sizeBeat, playGridY + playGridSize + 10, sizeBeat, sizeBeat);
@@ -550,8 +549,8 @@ public class Frame extends JFrame {
         });
 
 
-        MidiColorController midiColorController = MidiColorController.getInstance();
-        midiColorController.setReceiver(new Receiver() {
+        MidiController midiController = MidiController.getInstance(null);
+        midiController.setReceiver(new Receiver() {
             long timeMidi = 0;
 
             @Override
@@ -562,7 +561,7 @@ public class Frame extends JFrame {
                     ShortMessage sm = (ShortMessage) message;
 
                     Logger.info(String.valueOf(sm.getData1()));
-                    int padNum = midiColorController.padMapper(sm.getData1());
+                    int padNum = MidiByteMapper.padMapper(sm.getData1());
 
                     if (sm.getData1() == 113) {
                         toggleSwitchActive = !toggleSwitchActive;
@@ -573,7 +572,7 @@ public class Frame extends JFrame {
                     }
 
                     if (sm.getData1() >= 36 && sm.getData1() <= 43) {
-                        midiColorController.switchColorAsync(padNum, "01");
+                        midiController.switchColorAsync(padNum, "01");
 
                         if (soundLibrary.getSelectedSound().getSelectedTitel() != null) {
                             if (!toggleSwitchActive) {
