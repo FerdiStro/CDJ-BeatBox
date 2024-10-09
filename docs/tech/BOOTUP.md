@@ -4,6 +4,6 @@
     -> Load MidiControllerSettings <br>
   - org.main.midi.MidiController -> Init grpc to python for color switch und set up communication (transmitter and receiver) <br>
     -> Set Transmitter for MidiController
-- org.main.Frame ->  Frame class for vis components
-- org.main.settings.SettingsFrame -> Frame for Settings 
+- org.main.BeatBoxWindow ->  Frame class for vis components
+- org.main.settings.SettingsWindow -> Frame for Settings 
   - org.main.settings.graphics.CustomDropdown -> Dropdown Menu for midi-settings

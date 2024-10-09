@@ -1,23 +1,24 @@
-package org.main.settings.graphics;
+package org.main.util.graphics;
 
 import org.main.util.Koordinate;
 
 import java.awt.*;
 
-public class SettingsDescribeFrame {
+public class SettingsDescribeFrame extends AbstractComponent{
 
     private final String name;
     private final String description;
     private final String function;
     private final Koordinate koordinate;
 
-
-    public SettingsDescribeFrame(String name,String function, String description, Koordinate koordinate) {
+    public SettingsDescribeFrame(Koordinate koordinate, String name,String function, String description) {
+        super(koordinate);
         this.name = name;
         this.description = description;
         this.function = function;
         this.koordinate = koordinate;
     }
+
 
     public void draw(Graphics2D g) {
 

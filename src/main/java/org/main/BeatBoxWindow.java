@@ -1,5 +1,7 @@
 package org.main;
 
+import lombok.Getter;
+import lombok.Setter;
 import org.deepsymmetry.beatlink.data.*;
 import org.main.audio.PlayShots;
 import org.main.audio.SHOT_TYPE;
@@ -28,9 +30,8 @@ import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 
-import static java.lang.Thread.sleep;
 
-public class Frame extends JFrame {
+public class BeatBoxWindow extends JFrame {
 
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
@@ -47,10 +48,12 @@ public class Frame extends JFrame {
     private int masterX;
     private int masterY;
 
+    @Getter
     private double masterTempo = 0.0;
 
     private int setUpStringX;
 
+    @Setter
     private Map<Integer, TrackMetadata> metaData;
     private final int metaDataX = 15;
     private final int metaDataY = 50;
@@ -60,6 +63,7 @@ public class Frame extends JFrame {
     private int playGridX;
     private int playGridY;
     private int playGridSize;
+    @Setter
     private int playerGridCounterBeat = 0;
     private boolean playOnBeat = false;
     private int checkBeat = 0;
@@ -86,9 +90,9 @@ public class Frame extends JFrame {
 
 
     private boolean toggleVolumeSlider = false;
-    private HashMap<String, Koordinate> kordSlotList = new HashMap<>();
-    private HashMap<String, Koordinate> kordSlotMarkList = new HashMap<>();
-    private HashMap<String, Koordinate> kordSlotRemoveList = new HashMap<>();
+    private final HashMap<String, Koordinate> kordSlotList = new HashMap<>();
+    private final HashMap<String, Koordinate> kordSlotMarkList = new HashMap<>();
+    private final HashMap<String, Koordinate> kordSlotRemoveList = new HashMap<>();
 
 
     private int settingsSize;
@@ -101,28 +105,30 @@ public class Frame extends JFrame {
     private List<PlayShots> shotList = new ArrayList<>();
 
 
-    private int masterDevicdId = 0;
+    @Setter
+    private int masterDeviceId = 0;
 
     private final JLabel jLabel;
 
-    private static Frame INSTANCE;
+    private static BeatBoxWindow INSTANCE;
 
     private final LoadLibrary soundLibrary = LoadLibrary.getInstance();
 
     private final MidiController midiController = MidiController.getInstance(null);
 
-    public synchronized static Frame getInstance() {
+    public synchronized static BeatBoxWindow getInstance() {
         if (INSTANCE == null) {
-            INSTANCE = new Frame();
+            INSTANCE = new BeatBoxWindow();
             Logger.init(INSTANCE.getClass());
         }
         return INSTANCE;
     }
 
+    @Setter
     private boolean setupString = true;
 
 
-    private Frame() {
+    private BeatBoxWindow() {
         setLayout(null);
 
 
@@ -137,7 +143,7 @@ public class Frame extends JFrame {
             @Override
             public void componentResized(ComponentEvent e) {
                 Dimension size = getSize();
-                Frame.getInstance().resizeFrame(size);
+                BeatBoxWindow.getInstance().resizeFrame(size);
             }
         });
 
@@ -160,16 +166,16 @@ public class Frame extends JFrame {
 
 
                 //beat
-                Frame.this.setBackground(g2d, counterBeat, 1);
+                BeatBoxWindow.this.setBackground(g2d, counterBeat, 1);
                 g2d.fillOval(xBeat + sizeBeat / 2, yBeat, sizeBeat, sizeBeat);
 
-                Frame.this.setBackground(g2d, counterBeat, 2);
+                BeatBoxWindow.this.setBackground(g2d, counterBeat, 2);
                 g2d.fillOval(xBeat + sizeBeat + sizeBeat / 2 * 2, yBeat, sizeBeat, sizeBeat);
 
-                Frame.this.setBackground(g2d, counterBeat, 3);
+                BeatBoxWindow.this.setBackground(g2d, counterBeat, 3);
                 g2d.fillOval(xBeat + sizeBeat * 2 + sizeBeat / 2 * 3, yBeat, sizeBeat, sizeBeat);
 
-                Frame.this.setBackground(g2d, counterBeat, 4);
+                BeatBoxWindow.this.setBackground(g2d, counterBeat, 4);
                 g2d.fillOval(xBeat + sizeBeat * 3 + sizeBeat / 2 * 4, yBeat, sizeBeat, sizeBeat);
 
                 /*
@@ -213,7 +219,7 @@ public class Frame extends JFrame {
 
                             g2d.drawString(trackMetadata.getTitle(), x + 5, metaDataY + 20);
 
-                            Frame.this.setBackground(g2d, masterDevicdId, playerNumber);
+                            BeatBoxWindow.this.setBackground(g2d, masterDeviceId, playerNumber);
                             g2d.drawString(playerNumber.toString(), x + metaDataWidth - 20, metaDataY + 20);
                             g2d.setColor(Color.BLACK);
 
@@ -279,14 +285,14 @@ public class Frame extends JFrame {
                         Slot
                     */
                     if (slot.isActive() && !toggleSwitchActive) {
-                        Frame.this.midiController.switchColorAsync(i + 1, "01");
+                        BeatBoxWindow.this.midiController.switchColorAsync(i + 1, "01");
                         g2d.setColor(Color.RED);
                     } else if (toggleSwitchActive) {
-                        Frame.this.midiController.switchColorAsync(i + 1, "11");
+                        BeatBoxWindow.this.midiController.switchColorAsync(i + 1, "11");
                         g2d.setColor(Color.BLACK);
                     } else {
                         g2d.setColor(Color.BLACK);
-                        Frame.this.midiController.switchColorAsync(i + 1, "7F");
+                        BeatBoxWindow.this.midiController.switchColorAsync(i + 1, "7F");
                     }
 
                     g2d.drawString("" + tempI, x, playGridY);
@@ -312,10 +318,10 @@ public class Frame extends JFrame {
 
                     if (playerGridCounterBeat == tempI) {
                         g2d.setColor(Color.ORANGE);
-                        Frame.this.midiController.switchColorAsync(i + 1, "14");
+                        BeatBoxWindow.this.midiController.switchColorAsync(i + 1, "14");
 
                         if (tempI == 1) {
-                            Frame.this.midiController.switchColorAsync(playerGrid.getSlots().length, "7F");
+                            BeatBoxWindow.this.midiController.switchColorAsync(playerGrid.getSlots().length, "7F");
                         }
 
                         g2d.fillOval(x + playGridSize / 2 - sizeBeat, playGridY + playGridSize + 10, sizeBeat, sizeBeat);
@@ -631,9 +637,9 @@ public class Frame extends JFrame {
 //        jLabel.setFocusable(true);
 //        jLabel.requestFocusInWindow();
 
-        if (Settings.getInstance().isFullScreen() || Settings.getInstance().isFullScreenBorderLess()) {
+        if (Settings.getInstance().getBeatBoxWindowSettings().isBeatBoxWindowFullScreen() || Settings.getInstance().getBeatBoxWindowSettings().isBeatBoxWindowFullScreenBorderLess()) {
             setExtendedState(JFrame.MAXIMIZED_BOTH);
-            if (Settings.getInstance().isFullScreenBorderLess()) {
+            if (Settings.getInstance().getBeatBoxWindowSettings().isBeatBoxWindowFullScreenBorderLess()) {
                 setUndecorated(true);
             }
             screenWidth = getWidth();
@@ -664,9 +670,6 @@ public class Frame extends JFrame {
     public void setMasterTempo(double masterTempo) {
         this.masterTempo = masterTempo;
         jLabel.repaint();
-    }
-    public double getMasterTempo() {
-        return masterTempo;
     }
 
     private final ScheduledExecutorService beatPlayer = Executors.newScheduledThreadPool(1);
@@ -760,22 +763,6 @@ public class Frame extends JFrame {
         repaint();
     }
 
-
-    public void setSetupString(boolean setupString) {
-        this.setupString = setupString;
-    }
-
-    public void setMetaData(Map<Integer, TrackMetadata> metaData) {
-        this.metaData = metaData;
-    }
-
-    public void setMasterDevicdId(int masterDevicdId) {
-        this.masterDevicdId = masterDevicdId;
-    }
-
-    public void setPlayerGridCounterBeat(int playerGridCounterBeat) {
-        this.playerGridCounterBeat = playerGridCounterBeat;
-    }
 
     public void toggleSettingWindow() {
         Settings.getInstance().toggleVisible();

@@ -1,11 +1,17 @@
 package org.main.util;
 
+
+import lombok.Getter;
+import lombok.Setter;
+
+@Getter
+@Setter
 public class Koordinate {
     private int x;
     private int y;
 
 
-    private String name;
+    private final String name;
 
     public Koordinate(int x, int y) {
         this.x = x;
@@ -13,17 +19,6 @@ public class Koordinate {
         name = x +"-"+y;
     }
 
-    public int getX() {
-        return x;
-    }
-
-    public int getY() {
-        return y;
-    }
-
-    public String getName() {
-        return name;
-    }
 
 
 

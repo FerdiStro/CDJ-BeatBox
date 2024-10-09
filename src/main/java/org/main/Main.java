@@ -2,9 +2,8 @@ package org.main;
 
 import org.deepsymmetry.beatlink.*;
 import org.deepsymmetry.beatlink.data.*;
-import org.main.settings.CDJSettings;
+import org.main.settings.objects.CDJSettings;
 import org.main.settings.Settings;
-import org.main.settings.SettingsFrame;
 import org.main.util.Logger;
 
 import javax.swing.*;
@@ -30,7 +29,7 @@ public class Main {
         UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
         Toolkit.getDefaultToolkit().sync();
 
-        Frame frame = Frame.getInstance();
+        BeatBoxWindow frame = BeatBoxWindow.getInstance();
         frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 
 
@@ -45,7 +44,7 @@ public class Main {
         SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss.SSS");
 
 
-        Frame frame = Frame.getInstance();
+        BeatBoxWindow frame = BeatBoxWindow.getInstance();
         CDJSettings cdjSettings = Settings.getInstance().getCdjSettings();
 
         if (cdjSettings.isUseCdj()) {
@@ -66,7 +65,7 @@ public class Main {
                                 run();
                             } else {
                                 Logger.debug("Max attempts reached: " + attempts);
-                                cdjSettings.setUseCDJ(false);
+                                cdjSettings.setUseCdj(false);
                                 setUp();
                             }
                         } else {
@@ -90,7 +89,7 @@ public class Main {
 
                                 @Override
                                 public void masterChanged(DeviceUpdate update) {
-                                    frame.setMasterDevicdId(update.getDeviceNumber());
+                                    frame.setMasterDeviceId(update.getDeviceNumber());
                                 }
 
                                 @Override

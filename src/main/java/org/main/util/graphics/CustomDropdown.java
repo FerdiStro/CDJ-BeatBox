@@ -1,10 +1,13 @@
-package org.main.settings.graphics;
+package org.main.util.graphics;
+
+import org.main.util.Koordinate;
+import org.main.util.Logger;
 
 import java.awt.*;
 import java.awt.event.*;
 import java.util.List;
 
-public class CustomDropdown extends Component {
+public class CustomDropdown extends AbstractComponent {
     private List<String> options;
     private boolean isDropdownOpen = false;
     private String selectedOption;
@@ -13,8 +16,8 @@ public class CustomDropdown extends Component {
     private final int optionHeight;
 
 
-    public CustomDropdown(List<String> options, int x , int y, Dimension dimension) {
-        super(CustomDropdown.class, x, y);
+    public CustomDropdown(List<String> options, Koordinate koordinate, Dimension dimension) {
+        super(koordinate);
         this.dropdownWidth = dimension.width;
         this.dropdownHeight = dimension.height;
         this.optionHeight = dimension.height;
