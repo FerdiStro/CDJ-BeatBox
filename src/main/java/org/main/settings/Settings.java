@@ -70,7 +70,7 @@ public class Settings {
      */
     public void saveSettings() {
         for(AbstractSettings settingsObject : settingsObjects){
-            settingsObject.save(midiControllerSettings);
+            settingsObject.save(settingsObject);
         }
     }
 
