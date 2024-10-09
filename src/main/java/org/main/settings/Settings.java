@@ -4,10 +4,7 @@ import lombok.Getter;
 import lombok.Setter;
 import org.main.BeatBoxWindow;
 import org.main.midi.MidiController;
-import org.main.settings.objects.BeatBoxWindowSettings;
-import org.main.settings.objects.CDJSettings;
-import org.main.settings.objects.MidiControllerSettings;
-import org.main.settings.objects.AbstractSettings;
+import org.main.settings.objects.*;
 import org.main.util.Logger;
 
 import java.util.ArrayList;
@@ -45,22 +42,29 @@ public class Settings {
     @Getter
     BeatBoxWindowSettings beatBoxWindowSettings;
 
+    @Getter
+    LibrarySettings librarySettings;
+
     public void loadSettings() {
         Logger.info("Start Loading all settings");
 
         //Midi settings
-        midiControllerSettings = getSettingsObject(new MidiControllerSettings());
+        midiControllerSettings = getSettingsObject(new MidiControllerSettings(), true);
         MidiController.getInstance(midiControllerSettings);
         //CDJ settings
-        cdjSettings = getSettingsObject(new CDJSettings());
+        cdjSettings = getSettingsObject(new CDJSettings(), true);
         //Window settings
-        beatBoxWindowSettings = getSettingsObject(new BeatBoxWindowSettings());
+        beatBoxWindowSettings = getSettingsObject(new BeatBoxWindowSettings(), true);
+        //LibrarySettings
+        librarySettings = getSettingsObject(new LibrarySettings(), false);
 
     }
 
-    private   <T extends AbstractSettings> T getSettingsObject(T settingsObject){
+    private   <T extends AbstractSettings> T getSettingsObject(T settingsObject, boolean haveSave){
         T load = settingsObject.load(settingsObject);
-        settingsObjects.add(load);
+        if(haveSave){
+            settingsObjects.add(load);
+        }
         Logger.debug("Loaded settings object: " + settingsObject);
         return load;
     }

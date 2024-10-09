@@ -1,7 +1,6 @@
-package org.main.util.graphics;
+package org.main.util.graphics.components;
 
 import lombok.Getter;
-import org.deepsymmetry.cratedigger.pdb.RekordboxAnlz;
 import org.main.util.Koordinate;
 import org.main.util.Logger;
 
@@ -15,6 +14,7 @@ public abstract class AbstractComponent {
     private  int x;
     private  int y;
     private  Koordinate koordinate;
+    private Dimension dimension = new Dimension(0,0);
 
     public AbstractComponent( Koordinate koordinate) {
         Logger.init(getClass());
@@ -23,9 +23,20 @@ public abstract class AbstractComponent {
         this.koordinate = koordinate;
     }
 
+    public AbstractComponent( Koordinate koordinate, Dimension dimension) {
+        Logger.init(getClass());
+        this.x = koordinate.getX();
+        this.y = koordinate.getY();
+        this.koordinate = koordinate;
+        this.dimension =  dimension;
+    }
 
 
-    public void draw(Graphics2D g2d) {}
+
+    public void draw(Graphics2D g2d) {
+        g2d.setBackground(Color.black);
+        g2d.fillRect(koordinate.getX(), koordinate.getY(), (int) dimension.getWidth(), (int) dimension.getHeight());
+    }
 
 
     public void clickEvent(MouseEvent e){
@@ -50,13 +61,13 @@ public abstract class AbstractComponent {
     }
 
 
-    public void setDimension(Koordinate koordinate){
+    public void setKoordinate(Koordinate koordinate){
         this.x = koordinate.getX();
         this.y = koordinate.getY();
         this.koordinate =   koordinate;
     }
 
-    public void setDimension(int x, int y){
+    public void setKoordinate(int x, int y){
         this.x = x;
         this.y = y;
         this.koordinate =   new Koordinate(x, y);

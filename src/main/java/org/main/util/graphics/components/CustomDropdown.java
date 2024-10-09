@@ -1,7 +1,6 @@
-package org.main.util.graphics;
+package org.main.util.graphics.components;
 
 import org.main.util.Koordinate;
-import org.main.util.Logger;
 
 import java.awt.*;
 import java.awt.event.*;

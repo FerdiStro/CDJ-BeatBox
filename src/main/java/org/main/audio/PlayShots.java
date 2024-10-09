@@ -1,11 +1,13 @@
 package org.main.audio;
 
+import lombok.Getter;
 import org.main.audio.playegrid.SlotAudio;
 
 public class PlayShots {
 
     private final SlotAudio clipTitel;
     private final int padNum;
+    @Getter
     private final SHOT_TYPE shotType;
 
 
@@ -19,15 +21,7 @@ public class PlayShots {
         clipTitel.play(shotType);
     }
 
-    public int getPadNum() {
-        return padNum;
-    }
-
-    public SHOT_TYPE getShotType() {
-        return shotType;
-    }
-
-//    public static PlayShots mapToPlayShot(int padNum, String clipTitel){
+    //    public static PlayShots mapToPlayShot(int padNum, String clipTitel){
 //        return  switch (padNum){
 //            case 1 -> new PlayShots(clipTitel, );
 //            default -> new PlayShots(clipTitel, );

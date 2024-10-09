@@ -1,10 +1,11 @@
 package org.main.util.graphics;
 
 import org.main.util.Koordinate;
+import org.main.util.graphics.components.AbstractComponent;
 
 import java.awt.*;
 
-public class SettingsDescribeFrame extends AbstractComponent{
+public class SettingsDescribeFrame extends AbstractComponent {
 
     private final String name;
     private final String description;

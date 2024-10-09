@@ -8,6 +8,9 @@ import org.main.audio.SHOT_TYPE;
 import org.main.audio.library.LibraryKind;
 import org.main.audio.library.LoadLibrary;
 import org.main.audio.PlayerGrid;
+import org.main.audio.metadata.MetaDataFinder;
+import org.main.audio.metadata.SlotAudioMetaData;
+import org.main.audio.playegrid.ExtendedTrackMetaData;
 import org.main.audio.playegrid.Slot;
 import org.main.audio.playegrid.SlotAudio;
 import org.main.midi.MidiController;
@@ -15,6 +18,7 @@ import org.main.settings.Settings;
 import org.main.util.Koordinate;
 import org.main.util.Logger;
 import org.main.util.MidiByteMapper;
+import org.main.util.graphics.StringTruncationUtil;
 
 import javax.imageio.ImageIO;
 import javax.sound.midi.*;
@@ -36,6 +40,7 @@ public class BeatBoxWindow extends JFrame {
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
     private int fontSize = 0;
+    private int fontSizeImportant = 0;
 
     private static int screenWidth = 1200;
     private static int screenHeight = 700;
@@ -53,12 +58,14 @@ public class BeatBoxWindow extends JFrame {
 
     private int setUpStringX;
 
-    @Setter
-    private Map<Integer, TrackMetadata> metaData;
-    private final int metaDataX = 15;
-    private final int metaDataY = 50;
-    private final int metaDataHeight = 200;
-    private final int metaDataWidth = 400;
+    private Map<Integer, ExtendedTrackMetaData> metaData;
+
+
+
+    private  int metaDataX;
+    private  int metaDataY;
+    private  int metaDataHeight;
+    private  int metaDataWidth;
 
     private int playGridX;
     private int playGridY;
@@ -115,6 +122,9 @@ public class BeatBoxWindow extends JFrame {
     private final LoadLibrary soundLibrary = LoadLibrary.getInstance();
 
     private final MidiController midiController = MidiController.getInstance(null);
+
+    private final MetaDataFinder metadataFinder = MetaDataFinder.getInstance();
+
 
     public synchronized static BeatBoxWindow getInstance() {
         if (INSTANCE == null) {
@@ -207,8 +217,12 @@ public class BeatBoxWindow extends JFrame {
                  */
                 if (metaData != null) {
                     for (Integer playerNumber : metaData.keySet()) {
-                        TrackMetadata trackMetadata = metaData.get(playerNumber);
+
+                        ExtendedTrackMetaData trackMetadata = metaData.get(playerNumber);
                         int x = metaDataX * playerNumber + (metaDataWidth * playerNumber - metaDataWidth);
+
+
+
 
                         if (trackMetadata != null) {
                             setupString = false;
@@ -217,15 +231,45 @@ public class BeatBoxWindow extends JFrame {
                             g2d.fillRect(x, metaDataY, metaDataWidth, metaDataHeight);
                             g2d.setColor(Color.BLACK);
 
-                            g2d.drawString(trackMetadata.getTitle(), x + 5, metaDataY + 20);
+                            /*
+                                Recommendations
+                             */
+                            List<String> recommendations = metadataFinder.findRecommendations(trackMetadata.getTitle());
+
+                            if(recommendations != null ){
+
+                                for(int i =  0 ; i != recommendations.size(); i ++){
+                                    SlotAudioMetaData slotAudio = metadataFinder.getMetaData(recommendations.get(i));
+
+                                    g2d.drawString(slotAudio.getShortName(), x + (int)(slotAudio.getShortName().length() * getWidth() * (i + 1) * 0.01), (int) (metaDataY + getHeight() * 0.25 + fontSize));
+                                }
+
+//                                if(trackMetadata.getButton() == null){
+//                                    trackMetadata.setButton(new Button(new Koordinate(x, (int) (metaDataY + getHeight() * 0.25 + fontSize)), new Dimension(settingsSize, settingsSize)));
+//                                }
+//                                trackMetadata.getButton().draw(g2d);
+                            }
+
+
+
+
+
+                            /*
+                               Other meta-data
+                             */
+                            StringTruncationUtil.drawStringWithMaxWidth(g2d, trackMetadata.getTitle(), (int) (x + getX() * 0.02), (int) (metaDataY + getY() * 0.2 + fontSize ) , metaDataWidth - fontSize * 3 );
 
                             BeatBoxWindow.this.setBackground(g2d, masterDeviceId, playerNumber);
-                            g2d.drawString(playerNumber.toString(), x + metaDataWidth - 20, metaDataY + 20);
+                            g2d.drawString(playerNumber.toString(), x + metaDataWidth - fontSize, metaDataY + fontSize);
                             g2d.setColor(Color.BLACK);
+
+                            int y =  (int) (metaDataY + getHeight() * 0.01 + fontSize);
 
                             try {
                                 AlbumArt latestArtFor = ArtFinder.getInstance().getLatestArtFor(playerNumber);
-                                g2d.drawImage(latestArtFor.getImage(), x + 5, metaDataY + 30, 100, 100, null);
+
+
+                                g2d.drawImage(latestArtFor.getImage(), (int) (x + getWidth() * 0.008), y , getHeight()/5, getHeight()/5, null);
                             } catch (Exception e) {
                                 //ignore some Times picture miss
                             }
@@ -235,11 +279,11 @@ public class BeatBoxWindow extends JFrame {
                             DecimalFormatSymbols dfs = new DecimalFormatSymbols(Locale.US);
                             dfs.setDecimalSeparator('.');
                             df.setDecimalFormatSymbols(dfs);
-                            g2d.drawString(df.format(trackMetadata.getTempo() / 100.0), x + 110, metaDataY + 40);
+                            x =  (int) (x + getWidth() * 0.008 +  (double) getHeight() /5 );
 
-
-                            g2d.drawString(trackMetadata.getArtist().label, x + 110, metaDataY + 60);
-                            g2d.drawString(trackMetadata.getKey().label, x + 110, metaDataY + 80);
+                            g2d.drawString(df.format(trackMetadata.getTempo() / 100.0), x, y + fontSize);
+                            g2d.drawString(trackMetadata.getArtist(), x , y + fontSize * 2 );
+                            g2d.drawString(trackMetadata.getKey(), x , y + fontSize * 3);
 
                         }
                     }
@@ -315,7 +359,6 @@ public class BeatBoxWindow extends JFrame {
 
                     g2d.setColor(Color.BLACK);
 
-
                     if (playerGridCounterBeat == tempI) {
                         g2d.setColor(Color.ORANGE);
                         BeatBoxWindow.this.midiController.switchColorAsync(i + 1, "14");
@@ -332,7 +375,6 @@ public class BeatBoxWindow extends JFrame {
                         checkBeat = playerGridCounterBeat;
                     }
 
-
                     if (playerGridCounterBeat == tempI && playOnBeat && slot.isActive() && !toggleSwitchActive) {
                         slot.play();
                     }
@@ -343,7 +385,6 @@ public class BeatBoxWindow extends JFrame {
                     if (toggleVolumeSlider) {
                         slot.drawVolumeSlider(g2d, x, playGridY + sizeBeat * 8 + (int) (getWidth() * 0.02), getSize());
                     }
-
 
                     /*
                        Sound-list
@@ -356,7 +397,8 @@ public class BeatBoxWindow extends JFrame {
                          */
                         if(!toggleSwitchActive){
                             for (int j = 0; j != slot.getSelectedSounds().size(); j++) {
-                                int kordY = playGridY + sizeBeat + (int) (getHeight() * 0.08) + fontSize * (j + 1) + fontSize * 2;
+                                int kordY = (playGridY + sizeBeat + (int) (getHeight() * 0.1)) + (fontSize*2 * (j+1)) ;
+
                                 Koordinate koordinate = new Koordinate(x, kordY);
 
                                 if (kordSlotRemoveList.get(koordinate.getName()) != null) {
@@ -372,10 +414,15 @@ public class BeatBoxWindow extends JFrame {
                                         g2d.setColor(Color.LIGHT_GRAY);
                                     }
 
-
-                                    g2d.fillRect(x, kordY, playGridSize, fontSize);
+                                    g2d.fillRect(x, kordY, playGridSize, fontSize * 2);
                                     g2d.setColor(Color.BLACK);
-                                    g2d.drawString(slot.getSelectedSounds().get(j).getName(), x, playGridY + sizeBeat + (int) (getHeight() * 0.08) + fontSize * (j + 1) + fontSize * 3);
+
+                                    if(metadataFinder.getMetaData(slot.getSelectedSounds().get(j).getName()) !=  null){
+                                        StringTruncationUtil.drawStringWithMaxWidth(g2d,metadataFinder.getMetaData(slot.getSelectedSounds().get(j).getName()).getShortName(), x, kordY + fontSize, playGridSize);
+                                    }else{
+                                        StringTruncationUtil.drawStringWithMaxWidth(g2d,slot.getSelectedSounds().get(j).getName(), x, kordY  + fontSize, playGridSize);
+                                    }
+
                                 }
 
                             }
@@ -393,6 +440,7 @@ public class BeatBoxWindow extends JFrame {
                                 g2d.drawString(String.valueOf(shotList.get(j).getShotType().getBeatHit()), kordX , kordY);
 
                             }
+
                         }
 
 
@@ -401,6 +449,10 @@ public class BeatBoxWindow extends JFrame {
                                 slot.getSelectedSounds().remove(slotAudio);
                             }
                         }
+
+                        /*
+                            Sound Recommendation
+                         */
                     }
 
                     //                    //todo remove sound, better looking and func
@@ -514,7 +566,7 @@ public class BeatBoxWindow extends JFrame {
                 */
                 for (String kordName : kordSlotList.keySet()) {
                     Koordinate koordinate = kordSlotList.get(kordName);
-                    Rectangle kordListRect = new Rectangle(koordinate.getX(), koordinate.getY(), playGridSize, fontSize);
+                    Rectangle kordListRect = new Rectangle(koordinate.getX(), koordinate.getY(), playGridSize, fontSize * 2);
 
                     if (kordListRect.contains(mouseX, mouseY)) {
                         kordSlotRemoveList.put(kordName, koordinate);
@@ -542,7 +594,7 @@ public class BeatBoxWindow extends JFrame {
                 */
                 for (String kordName : kordSlotList.keySet()) {
                     Koordinate koordinate = kordSlotList.get(kordName);
-                    Rectangle kordListRect = new Rectangle(koordinate.getX(), koordinate.getY(), playGridSize, fontSize);
+                    Rectangle kordListRect = new Rectangle(koordinate.getX(), koordinate.getY(), playGridSize, fontSize * 2);
                     if (kordListRect.contains(mouseX, mouseY)) {
                         kordSlotMarkList.put(kordName, koordinate);
                     } else {
@@ -611,32 +663,6 @@ public class BeatBoxWindow extends JFrame {
             }
         });
 
-
-//        jLabel.addKeyListener(new KeyAdapter() {
-//            @Override
-//            public void keyTyped(KeyEvent e) {
-//                System.out.println(e.toString());
-//                super.keyTyped(e);
-//            }
-//
-//            @Override
-//            public void keyPressed(KeyEvent e) {
-//                System.out.println(e.toString());
-//
-//                super.keyPressed(e);
-//            }
-//
-//            @Override
-//            public void keyReleased(KeyEvent e) {
-//                System.out.println(e.toString());
-//
-//                super.keyReleased(e);
-//            }
-//        });
-//
-//        jLabel.setFocusable(true);
-//        jLabel.requestFocusInWindow();
-
         if (Settings.getInstance().getBeatBoxWindowSettings().isBeatBoxWindowFullScreen() || Settings.getInstance().getBeatBoxWindowSettings().isBeatBoxWindowFullScreenBorderLess()) {
             setExtendedState(JFrame.MAXIMIZED_BOTH);
             if (Settings.getInstance().getBeatBoxWindowSettings().isBeatBoxWindowFullScreenBorderLess()) {
@@ -650,10 +676,7 @@ public class BeatBoxWindow extends JFrame {
             setSize(screenWidth, screenHeight);
 
         }
-
-
         add(jLabel);
-
         setLayout(null);
         setVisible(true);
     }
@@ -675,7 +698,6 @@ public class BeatBoxWindow extends JFrame {
     private final ScheduledExecutorService beatPlayer = Executors.newScheduledThreadPool(1);
 
     public void setCounterBeat(int counterBeat) {
-        long halfBeatMillis = (long) (60000 / (2 * masterTempo));
         try {
             for (PlayShots playShots : shotList) {
                 playShots.play();
@@ -683,7 +705,6 @@ public class BeatBoxWindow extends JFrame {
             }
         } catch (Exception ignore) {
         }
-
         this.counterBeat = counterBeat;
         jLabel.repaint();
 
@@ -692,6 +713,11 @@ public class BeatBoxWindow extends JFrame {
 
     public void resizeFrame(Dimension dimension) {
         fontSize = Math.min(dimension.width, dimension.height) / 40;
+
+        //todo: set other important fonts with this size
+        fontSizeImportant =  fontSize + 20;
+
+
         jLabel.setBounds(0, 0, dimension.width, dimension.height);
 
         /*
@@ -741,6 +767,8 @@ public class BeatBoxWindow extends JFrame {
         playGridX = (int) (dimension.width * 0.018);
         playGridSize = (int) (Math.min(dimension.width - libraryWidth, dimension.height) * 0.118);
         playGridY = (int) (dimension.height * 0.5);
+        metaDataHeight = controlPanelHeight;
+        metaDataWidth = controlPanelWith;
 
         /*
             Toggle-switch
@@ -755,11 +783,23 @@ public class BeatBoxWindow extends JFrame {
         toggleHeight = (int) (dimension.height * 0.03);
 
         /*
+            Meta-data
+         */
+        metaDataX = settingsButtonX + (int) (dimension.width * 0.005) ;
+        metaDataY = settingsButtonY + (int) (dimension.height * 0.1);
+
+
+        /*
+            Library
+         */
+        for (LibraryKind libraryKind : soundLibrary.getFolderView()) {
+            libraryKind.getTree().setBounds(libraryX, libraryY, libraryWidth, libraryHeight);
+
+        }
+        soundLibrary.updateFont(fontSizeImportant);
+          /*
             Repaint
          */
-        for (LibraryKind libraryKind : LoadLibrary.getInstance().getFolderView()) {
-            libraryKind.getTree().setBounds(libraryX, libraryY, libraryWidth, libraryHeight);
-        }
         repaint();
     }
 
@@ -768,5 +808,12 @@ public class BeatBoxWindow extends JFrame {
         Settings.getInstance().toggleVisible();
     }
 
+    public void setMetaData(Map<Integer, TrackMetadata>  trackMetadata){
+        HashMap<Integer, ExtendedTrackMetaData> mappedMetaData = new HashMap<>();
+        for (Integer key : trackMetadata.keySet()) {
+            mappedMetaData.put(key, new ExtendedTrackMetaData(trackMetadata.get(key)));
+        }
+        this.metaData =  mappedMetaData;
+    }
 
 }
