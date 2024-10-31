@@ -1,5 +1,8 @@
 package org.main.audio.library;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import javax.sound.sampled.*;
 import javax.swing.*;
 import java.io.File;
@@ -10,14 +13,20 @@ import java.util.Map;
 
 public class LibraryKind {
 
+    @Getter
     private String name;
+    @Getter
     private TYPE type;
-
-
+    @Getter
     private boolean selected;
 
+    @Getter
     private JScrollPane  tree;
+    @Getter
+    @Setter
     private String selectedTitel;
+    @Setter
+    @Getter
     private List<String> filePaths = new ArrayList<>();
 
 
@@ -65,36 +74,4 @@ public class LibraryKind {
     }
 
 
-
-    public String getName() {
-        return name;
-    }
-
-    public boolean isSelected() {
-        return selected;
-    }
-
-    public JScrollPane getTree() {
-        return tree;
-    }
-
-    public String getSelectedTitel() {
-        return selectedTitel;
-    }
-
-    public void setSelectedTitel(String selectedTitel) {
-        this.selectedTitel = selectedTitel;
-    }
-
-    public List<String> getFilePaths() {
-        return filePaths;
-    }
-
-    public void setFilePaths(List<String> filePaths) {
-        this.filePaths = filePaths;
-    }
-
-    public TYPE getType() {
-        return type;
-    }
 }

@@ -1,0 +1,17 @@
+{
+  "KICK_04.wav": {
+    "keyStyle": "test",
+    "bpm": 20,
+    "shortName": "K4",
+    "recommendationSongs": ["Artur Achziger - Waiting", "Challenge Panini - HARDTECHNO INTRO 2024"]
+  },
+
+  "Mzperx_KICK_02.wav": {
+    "keyStyle": "test",
+    "bpm": 2,
+    "shortName": "K2",
+    "recommendationSongs": ["Artur Achziger - Waiting", "Challenge Panini - HARDTECHNO INTRO 2024"]
+  }
+}
+
+

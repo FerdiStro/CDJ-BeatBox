@@ -4,6 +4,7 @@ package org.main.audio.playegrid;
 import org.main.BeatBoxWindow;
 import org.main.audio.SHOT_TYPE;
 import org.main.audio.library.TYPE;
+import org.main.audio.metadata.SlotAudioMetaData;
 
 import javax.sound.sampled.*;
 import java.io.File;
@@ -19,6 +20,10 @@ public class SlotAudio {
     private final String name;
     private float volume = 0.5f;
 
+
+    private SlotAudioMetaData audioMetaData;
+
+
    public SlotAudio(File audioFile, TYPE playType){
        List<String> splitPath = Arrays.stream(audioFile.getPath().split("/")).toList();
        this.name = splitPath.get(splitPath.size()-1);
@@ -32,15 +37,12 @@ public class SlotAudio {
         this.volume = volume;
     }
 
-    private boolean isPlaying = true;
 
 
    //todo: add dynamic audio
     public synchronized  void  play(SHOT_TYPE shotType){
         Thread playThread = new Thread(() -> {
             try {
-                if(isPlaying){
-                    this.isPlaying = false;
                     AudioInputStream audioStream = AudioSystem.getAudioInputStream(audioFile);
                     AudioFormat format = audioStream.getFormat();
                     byte[] audioBytes = audioStream.readAllBytes();
@@ -60,7 +62,6 @@ public class SlotAudio {
                         clip.addLineListener(event -> {
                             if (event.getType() == LineEvent.Type.STOP) {
                                 clip.close();
-                                isPlaying = true;
                                 Thread.currentThread().interrupt();
 
                             }
@@ -90,7 +91,6 @@ public class SlotAudio {
                         twoClip.addLineListener(event -> {
                             if (event.getType() == LineEvent.Type.STOP) {
                                 twoClip.close();
-                                isPlaying = true;
                                 Thread.currentThread().interrupt();
 
                             }
@@ -137,7 +137,6 @@ public class SlotAudio {
                         fourClip.addLineListener(event -> {
                             if (event.getType() == LineEvent.Type.STOP) {
                                 fourClip.close();
-                                isPlaying = true;
                                 Thread.currentThread().interrupt();
 
 
@@ -145,7 +144,7 @@ public class SlotAudio {
                         });
                     }
 
-                }
+
             } catch (Exception e) {
                 e.printStackTrace();
             }

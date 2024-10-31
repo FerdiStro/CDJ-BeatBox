@@ -1,17 +1,18 @@
 package org.main.audio.library;
 
-import be.tarsos.dsp.AudioDispatcher;
-import be.tarsos.dsp.io.jvm.AudioDispatcherFactory;
-import be.tarsos.dsp.onsets.OnsetHandler;
-import be.tarsos.dsp.onsets.PercussionOnsetDetector;
+import lombok.Getter;
+import org.main.audio.metadata.MetaDataFinder;
+import org.main.audio.metadata.SlotAudioMetaData;
 import org.main.audio.playegrid.SlotAudio;
-import org.main.util.BpmCalculator;
+import org.main.settings.Settings;
+import org.main.settings.objects.LibrarySettings;
 import org.main.util.Logger;
 
 import javax.sound.sampled.*;
 import javax.swing.*;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.TreePath;
+import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.File;
@@ -20,6 +21,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.List;
 import java.util.stream.Stream;
 
 
@@ -37,19 +39,24 @@ public class LoadLibrary {
     private Clip clip;
     private final AudioInputStream audioStream = null;
 
+    @Getter
     private final List<LibraryKind> folderView = new ArrayList<>();
 
     private final HashMap<String, SlotAudio> audioCache = new HashMap<>();
 
 
+    private final LibrarySettings librarySettings;
+    private final MetaDataFinder metaDataFinder;
 
-
-    //Todo:  Write Library Loader
     private LoadLibrary() {
-        LibraryKind sound = generateTree("src/main/resources/Sound/");
-        LibraryKind onShoot = generateTree("src/main/resources/OnShoot/");
-        folderView.add(sound);
-        folderView.add(onShoot);
+        Logger.init(getClass());
+        this.metaDataFinder =  MetaDataFinder.getInstance();
+        this.librarySettings = Settings.getInstance().getLibrarySettings();
+
+        for(String path: librarySettings.getSoundKindListPaths()){
+            LibraryKind libraryKind = generateTree(path);
+            folderView.add(libraryKind);
+        }
         setSelectedLibrary(0);
     }
 
@@ -65,6 +72,7 @@ public class LoadLibrary {
 
         List<String> filePaths = new ArrayList<>();
         Path dir = Paths.get(path);
+
         try (Stream<Path> stream = Files.walk(dir)) {
 
             stream.filter(Files::isRegularFile).forEach(filePath -> {
@@ -75,6 +83,7 @@ public class LoadLibrary {
                     DefaultMutableTreeNode parent = root;
 
                     for (String part : framePath) {
+
                         DefaultMutableTreeNode child = null;
                         for (int i = 0; i < parent.getChildCount(); i++) {
                             DefaultMutableTreeNode node = (DefaultMutableTreeNode) parent.getChildAt(i);
@@ -84,7 +93,19 @@ public class LoadLibrary {
                             }
                         }
                         if (child == null) {
-                            child = new DefaultMutableTreeNode(part);
+
+                            if(soundSupportet(part)){
+                                SlotAudioMetaData metaData = metaDataFinder.getMetaData(part);
+                                if(metaData != null){
+                                    child = new DefaultMutableTreeNode(  metaData.getShortName() + "  K:" + metaData.getKey() + " B: "+  metaData.getBpm() +"---"+ part);
+                                }else{
+                                    child = new DefaultMutableTreeNode(part);
+                                }
+
+                            }else{
+                                child = new DefaultMutableTreeNode(part);
+
+                            }
                             parent.add(child);
                         }
                         parent = child;
@@ -108,6 +129,7 @@ public class LoadLibrary {
         }
 
         JTree tree = new JTree(root);
+
         tree.setRootVisible(true);
 
         final JScrollPane soundView = new JScrollPane(tree);
@@ -118,7 +140,9 @@ public class LoadLibrary {
 
         final LibraryKind sound = new LibraryKind(name, false, soundView, TYPE.getType(name));
 
+
         tree.addMouseListener(new MouseAdapter() {
+
 
             public void mousePressed(MouseEvent e) {
                 sound.stopRreListen();
@@ -127,10 +151,14 @@ public class LoadLibrary {
                     Object node = path.getLastPathComponent();
                     if (node != null) {
                         String nodeName = node.toString();
+                        String soundName = nodeName;
 
-                        if (nodeName.contains(".wav")) {
+                        if(nodeName.split("---").length >= 2){
+                            soundName = nodeName.split("---")[1];
+                        }
 
-                            sound.setSelectedTitel(nodeName);
+                        if (soundSupportet(soundName)) {
+                            sound.setSelectedTitel(soundName);
                             sound.preListen();
 
 
@@ -177,7 +205,9 @@ public class LoadLibrary {
         }
         try {
             assert audioFile != null;
-            return new SlotAudio(audioFile, getSelectedSound().getType() );
+            SlotAudio audio =  new SlotAudio(audioFile, getSelectedSound().getType() );;
+            this.audioCache.put(getSelectedSound().getSelectedTitel(), audio);
+            return audio;
         } catch (Exception e) {
             return null;
         }
@@ -210,10 +240,6 @@ public class LoadLibrary {
         return null;
     }
 
-    public List<LibraryKind> getFolderView(){
-        return this.folderView;
-    }
-
     public void updateVis(){
         for(LibraryKind libraryKind : getFolderView()){
             if(libraryKind.isSelected()){
@@ -222,6 +248,37 @@ public class LoadLibrary {
 
         }
     }
+
+
+    private boolean soundSupportet(String format){
+        for (String supportedFormat : librarySettings.getSupportetFormat()){
+           if(format.contains(supportedFormat)){
+               return true;
+           }
+        }
+        return false;
+    }
+
+
+    public void updateFont(Integer fontsize){
+        for (LibraryKind libraryKind : folderView) {
+            changeTreeFontSize(libraryKind.getTree(), fontsize);
+        }
+    }
+
+
+    private void changeTreeFontSize(JScrollPane scrollPane, int fontSize) {
+        JTree tree = (JTree) scrollPane.getViewport().getView();
+
+        if (tree != null) {
+            Font currentFont = tree.getFont();
+            Font newFont = new Font(currentFont.getFontName(), currentFont.getStyle(), fontSize);
+            tree.setFont(newFont);
+            tree.setRowHeight(fontSize + 5);
+            tree.repaint();
+        }
+    }
+
 
 
 

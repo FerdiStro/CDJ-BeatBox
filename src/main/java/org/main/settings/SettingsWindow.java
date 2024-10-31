@@ -2,8 +2,8 @@ package org.main.settings;
 
 
 import org.main.midi.MidiController;
-import org.main.util.graphics.AbstractComponent;
-import org.main.util.graphics.CustomDropdown;
+import org.main.util.graphics.components.AbstractComponent;
+import org.main.util.graphics.components.CustomDropdown;
 import org.main.util.graphics.SettingsDescribeFrame;
 import org.main.util.Koordinate;
 import org.main.util.Logger;
@@ -185,6 +185,7 @@ public class SettingsWindow extends JFrame {
         addWindowListener(new WindowAdapter() {
             public void windowClosing(WindowEvent e) {
                 Settings.getInstance().saveSettings();
+                Settings.getInstance().toggleVisible();
             }
         });
     }

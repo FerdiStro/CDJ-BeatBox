@@ -2,6 +2,7 @@ package org.main;
 
 import org.deepsymmetry.beatlink.*;
 import org.deepsymmetry.beatlink.data.*;
+import org.main.audio.playegrid.ExtendedTrackMetaData;
 import org.main.settings.objects.CDJSettings;
 import org.main.settings.Settings;
 import org.main.util.Logger;
@@ -108,14 +109,11 @@ public class Main {
                             });
 
                             try {
-                                Logger.info("testy");
-
                                 MetadataFinder.getInstance().start();
                                 ArtFinder.getInstance().start();
                                 WaveformFinder.getInstance().start();
                                 BeatGridFinder.getInstance().start();
                             } catch (Exception e) {
-                                System.out.println("illegal");
                                 throw new IllegalStateException();
                             }
 

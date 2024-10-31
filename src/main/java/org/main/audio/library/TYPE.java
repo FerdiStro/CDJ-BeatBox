@@ -1,8 +1,8 @@
 package org.main.audio.library;
 
 public enum TYPE {
-    SOUND("Sound"),
-    ONESHOOT ("OnShoot");
+    SOUND("Sounds/Sound"),
+    ONESHOOT ("Sounds/OnShoot");
 
     private final String text;
 
@@ -16,11 +16,11 @@ public enum TYPE {
     }
 
     public static TYPE getType(String name){
-        switch (name){
-            case "Sound": return  SOUND;
-            case "OnShoot": return ONESHOOT;
-        }
-        return null;
+        return switch (name) {
+            case "Sound" -> SOUND;
+            case "OnShoot" -> ONESHOOT;
+            default -> null;
+        };
     }
 
 

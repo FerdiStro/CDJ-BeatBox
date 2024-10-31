@@ -1,0 +1,11 @@
+{
+  "soundKindListPaths" : [
+    "src/main/resources/Sounds/Sound/",
+    "src/main/resources/Sounds/OnShoot/"
+  ],
+  "supportetFormat": [
+    ".wav",
+    ".mp3"
+  ]
+
+}
