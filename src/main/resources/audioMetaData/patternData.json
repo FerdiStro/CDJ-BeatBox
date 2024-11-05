@@ -1,0 +1,37 @@
+{
+  "name": "testPattern",
+  "grid": {
+    "slots": [
+      {
+        "selectedSounds": [
+          {
+            "playType": "SOUND",
+            "name": "KICK_20.wav",
+            "volume": 0.5
+          }
+        ]
+      },
+      {
+        "selectedSounds": []
+      },
+      {
+        "selectedSounds": []
+      },
+      {
+        "selectedSounds": []
+      },
+      {
+        "selectedSounds": []
+      },
+      {
+        "selectedSounds": []
+      },
+      {
+        "selectedSounds": []
+      },
+      {
+        "selectedSounds": []
+      }
+    ]
+  }
+}

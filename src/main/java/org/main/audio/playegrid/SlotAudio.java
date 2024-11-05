@@ -1,8 +1,8 @@
 package org.main.audio.playegrid;
 
 
+import lombok.Getter;
 import org.main.BeatBoxWindow;
-import org.main.audio.SHOT_TYPE;
 import org.main.audio.library.TYPE;
 import org.main.audio.metadata.SlotAudioMetaData;
 
@@ -15,14 +15,22 @@ import static java.lang.Thread.sleep;
 
 public class SlotAudio {
 
+    @Getter
     private final TYPE playType;
-    private final File audioFile;
+    @Getter
+    private final transient File audioFile;
+    @Getter
     private final String name;
     private float volume = 0.5f;
 
 
     private SlotAudioMetaData audioMetaData;
 
+    public SlotAudio(SlotAudio slotAudio, TYPE playType) {
+        this.playType = playType;
+        this.audioFile = slotAudio.getAudioFile();
+        this.name = slotAudio.getName();
+    }
 
    public SlotAudio(File audioFile, TYPE playType){
        List<String> splitPath = Arrays.stream(audioFile.getPath().split("/")).toList();
@@ -40,7 +48,7 @@ public class SlotAudio {
 
 
    //todo: add dynamic audio
-    public synchronized  void  play(SHOT_TYPE shotType){
+    public synchronized  void  play(){
         Thread playThread = new Thread(() -> {
             try {
                     AudioInputStream audioStream = AudioSystem.getAudioInputStream(audioFile);
@@ -56,7 +64,7 @@ public class SlotAudio {
                     /*
                         Play one beat
                      */
-                    if(shotType == SHOT_TYPE.ONE_BEST){
+                    if(playType == TYPE.ONE_BEST || playType == TYPE.SOUND || playType == TYPE.ONESHOOT){
                         clip.start();
 
                         clip.addLineListener(event -> {
@@ -70,7 +78,7 @@ public class SlotAudio {
                     /*
                         Play two beats
                      */
-                    if(shotType == SHOT_TYPE.TWO_BEAT){
+                    if(playType == TYPE.TWO_BEAT){
                         double waitTimer = (1000  / (BeatBoxWindow.getInstance().getMasterTempo() /  60)) / 2;
 
                         Clip twoClip = AudioSystem.getClip();
@@ -100,7 +108,7 @@ public class SlotAudio {
                     /*
                         Play four beats
                      */
-                    if(shotType == SHOT_TYPE.FOUR_BEAT){
+                    if(playType == TYPE.FOUR_BEAT){
                         double waitTimer = (1000  / (BeatBoxWindow.getInstance().getMasterTempo() /  60)) / 4;
 
                         Clip twoClip = AudioSystem.getClip();
@@ -186,11 +194,4 @@ public class SlotAudio {
         }
     }
 
-    public String getName() {
-        return name;
-    }
-
-    public TYPE getPlayType() {
-        return playType;
-    }
 }

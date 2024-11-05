@@ -3,7 +3,7 @@ package org.main.settings;
 
 import org.main.midi.MidiController;
 import org.main.util.graphics.components.AbstractComponent;
-import org.main.util.graphics.components.CustomDropdown;
+import org.main.util.graphics.components.menu.CustomDropdown;
 import org.main.util.graphics.SettingsDescribeFrame;
 import org.main.util.Koordinate;
 import org.main.util.Logger;

@@ -1,6 +1,7 @@
 package org.main.util.graphics.components;
 
 import lombok.Getter;
+import lombok.Setter;
 import org.main.util.Koordinate;
 import org.main.util.Logger;
 
@@ -14,6 +15,7 @@ public abstract class AbstractComponent {
     private  int x;
     private  int y;
     private  Koordinate koordinate;
+    @Setter
     private Dimension dimension = new Dimension(0,0);
 
     public AbstractComponent( Koordinate koordinate) {
@@ -31,13 +33,18 @@ public abstract class AbstractComponent {
         this.dimension =  dimension;
     }
 
-
-
     public void draw(Graphics2D g2d) {
         g2d.setBackground(Color.black);
         g2d.fillRect(koordinate.getX(), koordinate.getY(), (int) dimension.getWidth(), (int) dimension.getHeight());
     }
 
+    public void setX(int x){
+        koordinate.setX(x);
+    }
+
+    public void setY(int y){
+        koordinate.setY(y);
+    }
 
     public void clickEvent(MouseEvent e){
     }
@@ -72,4 +79,12 @@ public abstract class AbstractComponent {
         this.y = y;
         this.koordinate =   new Koordinate(x, y);
     }
+
+    public void setRepositionAndSize(int x, int y, int width, int height ){
+        setKoordinate(x, y);
+        setDimension(new Dimension(width, height));
+    }
+
+
+
 }

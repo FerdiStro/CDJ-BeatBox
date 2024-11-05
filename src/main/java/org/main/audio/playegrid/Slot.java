@@ -1,6 +1,7 @@
 package org.main.audio.playegrid;
 
-import org.main.audio.SHOT_TYPE;
+
+import lombok.Getter;
 import org.main.audio.library.TYPE;
 
 import javax.swing.event.ChangeEvent;
@@ -9,26 +10,28 @@ import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 
+
 public class Slot implements ChangeListener {
 
+    @Getter
     private List<SlotAudio> selectedSounds = new ArrayList<>();
 
-    private boolean active = false;
-    private double sliderValue = 0.5;
+    private transient boolean active = false;
+    private transient double sliderValue = 0.5;
 
     //todo: load other slot audio with library
-    private  int VOLUME_SLIDER_WIDTH ;
-    private  int VOLUME_SLIDER_HEIGHT;
-    private  int sliderHeight;
-    private  int SLIDER_WIDTH;
+    private transient int VOLUME_SLIDER_WIDTH ;
+    private transient int VOLUME_SLIDER_HEIGHT;
+    private transient int sliderHeight;
+    private transient int SLIDER_WIDTH;
 
     public int getVolumeSliderHeight(){
         return VOLUME_SLIDER_HEIGHT;
     }
 
-    private boolean draggingSlider =  false;
+    private transient boolean draggingSlider =  false;
 
-    private int x, y;
+    private transient int x, y;
 
 
     //todo: connect volumeSlider to  MINILAB MIDI keyboard
@@ -95,14 +98,10 @@ public class Slot implements ChangeListener {
         }
     }
 
-    public void toggleActive(){
-        this.active  = !this.active;
-    }
-
     public void play(){
         try {
             for(SlotAudio audio: selectedSounds){
-                audio.play(SHOT_TYPE.ONE_BEST);
+                audio.play();
                 if(audio.getPlayType().equals(TYPE.ONESHOOT)){
                     this.getSelectedSounds().remove(audio);
                 }
@@ -110,10 +109,6 @@ public class Slot implements ChangeListener {
         }catch (Exception e){
             //ignore
         }
-    }
-
-    public List<SlotAudio> getSelectedSounds() {
-        return selectedSounds;
     }
 
     public boolean isActive() {

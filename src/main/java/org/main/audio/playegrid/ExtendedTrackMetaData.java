@@ -4,7 +4,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import org.deepsymmetry.beatlink.data.TrackMetadata;
-import org.main.util.graphics.components.Button;
+import org.main.util.graphics.components.button.Button;
 
 @Setter
 @Getter

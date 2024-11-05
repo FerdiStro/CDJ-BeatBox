@@ -15,7 +15,7 @@ public class MetaDataFinder {
 
 
     private static MetaDataFinder INSTANCE;
-    private static final String PATH = "src/main/resources/audioMetadata/metadata.json";
+    private static final String PATH = "src/main/resources/audioMetaData/metadata.json";
     private Map<String, SlotAudioMetaData> metaDataList =  new HashMap<>();
 
     public static MetaDataFinder getInstance() {
@@ -45,7 +45,6 @@ public class MetaDataFinder {
     /*
         Recommendations
      */
-
     private Map<String, List<String>> recommendationsList = new HashMap<>();
 
 

@@ -3,13 +3,16 @@ package org.main;
 import lombok.Getter;
 import lombok.Setter;
 import org.deepsymmetry.beatlink.data.*;
-import org.main.audio.PlayShots;
-import org.main.audio.SHOT_TYPE;
+
+
 import org.main.audio.library.LibraryKind;
 import org.main.audio.library.LoadLibrary;
 import org.main.audio.PlayerGrid;
+import org.main.audio.library.TYPE;
 import org.main.audio.metadata.MetaDataFinder;
 import org.main.audio.metadata.SlotAudioMetaData;
+import org.main.audio.pattern.PatternManager;
+import org.main.audio.pattern.PlayPattern;
 import org.main.audio.playegrid.ExtendedTrackMetaData;
 import org.main.audio.playegrid.Slot;
 import org.main.audio.playegrid.SlotAudio;
@@ -19,6 +22,9 @@ import org.main.util.Koordinate;
 import org.main.util.Logger;
 import org.main.util.MidiByteMapper;
 import org.main.util.graphics.StringTruncationUtil;
+import org.main.util.graphics.components.AbstractComponent;
+import org.main.util.graphics.components.button.Button;
+import org.main.util.graphics.components.button.OnPress;
 
 import javax.imageio.ImageIO;
 import javax.sound.midi.*;
@@ -89,14 +95,18 @@ public class BeatBoxWindow extends JFrame {
     private int controlPanelWith;
     private int controlPanelHeight;
 
-    private int toggleSwitchX;
-    private int toggleSwitchY;
-    private int toggleWith;
-    private int toggleHeight;
-    private boolean toggleSwitchActive = false;
 
 
-    private boolean toggleVolumeSlider = false;
+    private Button playerGridButton = new Button(new Koordinate(0, 0), new Dimension(200, 10), "toggle-slot");
+    private Button volumeSliderButton = new Button(new Koordinate(0, 0), new Dimension(200, 10), "togglePlayerGrid");
+
+
+    private Button patternSave = new Button(new Koordinate(100, 100 ), new Dimension(100, 100), "save");
+
+
+
+
+
     private final HashMap<String, Koordinate> kordSlotList = new HashMap<>();
     private final HashMap<String, Koordinate> kordSlotMarkList = new HashMap<>();
     private final HashMap<String, Koordinate> kordSlotRemoveList = new HashMap<>();
@@ -109,7 +119,7 @@ public class BeatBoxWindow extends JFrame {
     private int settingsButtonY = yBeat + settingsSize;
 
 
-    private List<PlayShots> shotList = new ArrayList<>();
+    private List<SlotAudio> shotList = new ArrayList<>();
 
 
     @Setter
@@ -142,6 +152,9 @@ public class BeatBoxWindow extends JFrame {
         setLayout(null);
 
 
+        playerGridButton.setStateButton(true, "-ON", "-OFF");
+        volumeSliderButton.setStateButton(true, "-ON", "-OFF");
+
         PlayerGrid playerGrid = PlayerGrid.getInstance();
         for (LibraryKind libraryKind : soundLibrary.getFolderView()) {
             JScrollPane tree = libraryKind.getTree();
@@ -156,6 +169,23 @@ public class BeatBoxWindow extends JFrame {
                 BeatBoxWindow.getInstance().resizeFrame(size);
             }
         });
+
+
+        //Pattern Example
+        PlayPattern pattern =  new PlayPattern("testPattern");
+
+        PlayerGrid patternGrid2 = new PlayerGrid();
+
+        File file2 = new File("src/main/resources/Sounds/OnShoot/kick/KICK_20.wav");
+
+        SlotAudio slotSoundA = new SlotAudio(file2, TYPE.SOUND);
+        SlotAudio slotSoundB = new SlotAudio(file2, TYPE.SOUND);
+
+        patternGrid2.getSlots()[0].addSelectedSound(slotSoundA);
+        patternGrid2.getSlots()[0].addSelectedSound(slotSoundB);
+        pattern.setGrid(patternGrid2);
+
+
 
         jLabel = new JLabel() {
 
@@ -297,22 +327,16 @@ public class BeatBoxWindow extends JFrame {
                 g2d.setColor(Color.LIGHT_GRAY);
                 g2d.fillRect(controlPanelX, controlPanelY, controlPanelWith, controlPanelHeight);
 
-                String tempToggleSwitch = "";
-                if (toggleSwitchActive) {
-                    g2d.setColor(Color.ORANGE);
-                    tempToggleSwitch = "ON";
-                } else {
-                    g2d.setColor(Color.BLACK);
-                    tempToggleSwitch = "OFF";
 
-                }
-                g2d.drawRect(toggleSwitchX, toggleSwitchY, toggleWith, toggleHeight);
-                g2d.setColor(Color.BLACK);
-                g2d.drawString("toggle-slot -" + tempToggleSwitch, toggleSwitchX + 2, toggleSwitchY + toggleHeight - 5);
+                playerGridButton.draw(g2d);
+                volumeSliderButton.draw(g2d);
+
+
 
                 /*
                     PlayerGrid
                  */
+
 
                 for (int i = 0; i != playerGrid.getSlots().length; i++) {
 
@@ -328,10 +352,10 @@ public class BeatBoxWindow extends JFrame {
                     /*
                         Slot
                     */
-                    if (slot.isActive() && !toggleSwitchActive) {
+                    if (slot.isActive() && !playerGridButton.isToggle()) {
                         BeatBoxWindow.this.midiController.switchColorAsync(i + 1, "01");
                         g2d.setColor(Color.RED);
-                    } else if (toggleSwitchActive) {
+                    } else if (playerGridButton.isToggle()) {
                         BeatBoxWindow.this.midiController.switchColorAsync(i + 1, "11");
                         g2d.setColor(Color.BLACK);
                     } else {
@@ -342,17 +366,17 @@ public class BeatBoxWindow extends JFrame {
                     g2d.drawString("" + tempI, x, playGridY);
                     g2d.fillRect(x, playGridY + 4, playGridSize, playGridSize);
 
-                    if(toggleSwitchActive){
+                    if(playerGridButton.isToggle()){
                         g2d.setColor(Color.WHITE);
                         switch (tempI){
                             case 1:
-                                g2d.drawString(String.valueOf(SHOT_TYPE.ONE_BEST.getBeatHit()), x + fontSize , playGridY+ playGridSize - fontSize);
+                                g2d.drawString(String.valueOf(TYPE.ONE_BEST.getBeatHit()), x + fontSize , playGridY+ playGridSize - fontSize);
                                 break;
                             case 2:
-                                g2d.drawString(String.valueOf(SHOT_TYPE.TWO_BEAT.getBeatHit()), x + fontSize, playGridY+ playGridSize - fontSize);
+                                g2d.drawString(String.valueOf(TYPE.TWO_BEAT.getBeatHit()), x + fontSize, playGridY+ playGridSize - fontSize);
                                 break;
                             case 3:
-                                g2d.drawString(String.valueOf(SHOT_TYPE.FOUR_BEAT.getBeatHit()), x + fontSize, playGridY+ playGridSize - fontSize);
+                                g2d.drawString(String.valueOf(TYPE.FOUR_BEAT.getBeatHit()), x + fontSize, playGridY+ playGridSize - fontSize);
                                 break;
                         }
                     }
@@ -375,27 +399,28 @@ public class BeatBoxWindow extends JFrame {
                         checkBeat = playerGridCounterBeat;
                     }
 
-                    if (playerGridCounterBeat == tempI && playOnBeat && slot.isActive() && !toggleSwitchActive) {
+                    if (playerGridCounterBeat == tempI && playOnBeat && slot.isActive() && !playerGridButton.isToggle()) {
                         slot.play();
                     }
 
                     /*
                         Volume-Slider
+                        todo: find better place for volume Slider
                      */
-                    if (toggleVolumeSlider) {
-                        slot.drawVolumeSlider(g2d, x, playGridY + sizeBeat * 8 + (int) (getWidth() * 0.02), getSize());
-                    }
+//                    if (volumeSliderButton.isToggle()) {
+//                        slot.drawVolumeSlider(g2d, x, playGridY + sizeBeat * 8 + (int) (getWidth() * 0.02), getSize());
+//                    }
 
                     /*
                        Sound-list
                      */
-                    if (!toggleVolumeSlider) {
+                    if (!volumeSliderButton.isToggle()) {
                         List<SlotAudio> removeSlotAudio = new ArrayList<>();
 
                         /*
                             Player grid list
                          */
-                        if(!toggleSwitchActive){
+                        if(!playerGridButton.isToggle()){
                             for (int j = 0; j != slot.getSelectedSounds().size(); j++) {
                                 int kordY = (playGridY + sizeBeat + (int) (getHeight() * 0.1)) + (fontSize*2 * (j+1)) ;
 
@@ -430,14 +455,14 @@ public class BeatBoxWindow extends JFrame {
                         /*
                             One-shot list
                         */
-                        if(toggleSwitchActive){
+                        if(playerGridButton.isToggle()){
                             int kordY = playGridY + playGridSize + fontSize*3;
                             g2d.drawString("PlayList: ", playGridX , kordY);
 
                             for(int j = 0; j !=  shotList.size(); j ++){
                                 int kordX = playGridX + sizeBeat + (int) (getHeight() * 0.08) + fontSize * (j + 1) + fontSize * 2;
 
-                                g2d.drawString(String.valueOf(shotList.get(j).getShotType().getBeatHit()), kordX , kordY);
+                                g2d.drawString(String.valueOf(shotList.get(j).getPlayType().getBeatHit()), kordX , kordY);
 
                             }
 
@@ -456,6 +481,16 @@ public class BeatBoxWindow extends JFrame {
                     }
 
                     //                    //todo remove sound, better looking and func
+
+
+                }
+
+
+                /*
+                    Pattern Manager
+                 */
+                if (volumeSliderButton.isToggle()) {
+                    patternSave.draw(g2d);
 
 
                 }
@@ -517,12 +552,22 @@ public class BeatBoxWindow extends JFrame {
                 /*
                     Toggle beat-button
                  */
-                Rectangle rectToggle = new Rectangle(toggleSwitchX, toggleSwitchY, toggleWith, toggleHeight);
+                playerGridButton.checkMouse(e, () -> repaint());
+                volumeSliderButton.checkMouse(e, () -> repaint());
 
-                if (rectToggle.contains(mouseX, mouseY)) {
-                    toggleSwitchActive = !toggleSwitchActive;
+                /*
+                    Pattern Manager
+                 */
+                patternSave.checkMouse(e, () -> {
+//                    playerGrid.loadPattern(pattern);
+                    PatternManager patternManager = PatternManager.getInstance();
+                    patternManager.savePattern(pattern);
+
+
                     repaint();
-                }
+                });
+
+
                 /*
                     Beat grid
                  */
@@ -533,11 +578,23 @@ public class BeatBoxWindow extends JFrame {
 
                     Rectangle rect = new Rectangle(x + 2, playGridY, playGridSize, playGridSize);
                     if (rect.contains(mouseX, mouseY)) {
-
-                        slot.addSelectedSound(soundLibrary.getSelectedSlotAudio());
-                        soundLibrary.getSelectedSound().stopRreListen();
+                        if(playerGridButton.isToggle()){
+                            if(tempI == 1){
+                                shotList.add(new SlotAudio(soundLibrary.getSelectedSlotAudio(),  TYPE.ONE_BEST));
+                            }
+                            if(tempI == 2){
+                                shotList.add(new SlotAudio(soundLibrary.getSelectedSlotAudio(), TYPE.TWO_BEAT));
+                            }
+                            if(tempI == 3){
+                                shotList.add(new SlotAudio(soundLibrary.getSelectedSlotAudio(), TYPE.FOUR_BEAT));
+                            }
+                        }else{
+                            slot.addSelectedSound(soundLibrary.getSelectedSlotAudio());
+                            soundLibrary.getSelectedSound().stopRreListen();
+                        }
                         repaint();
                         break;
+
                     }
                 }
                 /*
@@ -622,33 +679,33 @@ public class BeatBoxWindow extends JFrame {
                     int padNum = MidiByteMapper.padMapper(sm.getData1());
 
                     if (sm.getData1() == 113) {
-                        toggleSwitchActive = !toggleSwitchActive;
+                        playerGridButton.toggle();
                     }
 
                     if (sm.getData1() == 115) {
-                        toggleVolumeSlider = !toggleVolumeSlider;
+                        volumeSliderButton.toggle();
                     }
 
                     if (sm.getData1() >= 36 && sm.getData1() <= 43) {
                         midiController.switchColorAsync(padNum, "01");
 
                         if (soundLibrary.getSelectedSound().getSelectedTitel() != null) {
-                            if (!toggleSwitchActive) {
+                            if (!playerGridButton.isToggle()) {
                                 playerGrid.getSlots()[padNum - 1].addSelectedSound(soundLibrary.getSelectedSlotAudio());
                             }
 
-                            if (toggleSwitchActive) {
+                            if (playerGridButton.isToggle()) {
                                 /*
                                     Play slot in beat
                                  */
                                 if(sm.getData1() == 36){
-                                    shotList.add(new PlayShots(soundLibrary.getSelectedSlotAudio(), padNum, SHOT_TYPE.ONE_BEST));
+                                    shotList.add(new SlotAudio(soundLibrary.getSelectedSlotAudio(), TYPE.ONE_BEST));
                                 }
                                 if(sm.getData1() == 37){
-                                    shotList.add(new PlayShots(soundLibrary.getSelectedSlotAudio(), padNum, SHOT_TYPE.TWO_BEAT));
+                                    shotList.add(new SlotAudio(soundLibrary.getSelectedSlotAudio(), TYPE.TWO_BEAT));
                                 }
                                 if(sm.getData1() == 38){
-                                    shotList.add(new PlayShots(soundLibrary.getSelectedSlotAudio(), padNum, SHOT_TYPE.FOUR_BEAT));
+                                    shotList.add(new SlotAudio(soundLibrary.getSelectedSlotAudio(), TYPE.FOUR_BEAT));
                                 }
                             }
 
@@ -699,7 +756,7 @@ public class BeatBoxWindow extends JFrame {
 
     public void setCounterBeat(int counterBeat) {
         try {
-            for (PlayShots playShots : shotList) {
+            for (SlotAudio playShots : shotList) {
                 playShots.play();
                 shotList.remove(playShots);
             }
@@ -777,10 +834,11 @@ public class BeatBoxWindow extends JFrame {
         controlPanelY = metaDataY;
         controlPanelWith = (int) (dimension.width * 0.3);
         controlPanelHeight = (int) (dimension.height * 0.3);
-        toggleSwitchX = controlPanelX + (int) (dimension.width * 0.005);
-        toggleSwitchY = metaDataY + (int) (dimension.height * 0.005);
-        toggleWith = (int) (dimension.width * 0.05) + 8 * fontSize;
-        toggleHeight = (int) (dimension.height * 0.03);
+
+
+        playerGridButton.setRepositionAndSize(controlPanelX + (int) (dimension.width * 0.005),metaDataY + (int) (dimension.height * 0.005), (int) (dimension.width * 0.05) + 8 * fontSize, (int) (dimension.height * 0.03) );
+        volumeSliderButton.setRepositionAndSize(playerGridButton.getX(),playerGridButton.getY() + playerGridButton.getDimension().height +   (int) (dimension.height * 0.005 ),  playerGridButton.getDimension().width,  playerGridButton.getDimension().height);
+
 
         /*
             Meta-data
