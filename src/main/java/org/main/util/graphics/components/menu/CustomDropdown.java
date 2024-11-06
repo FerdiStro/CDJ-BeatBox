@@ -1,6 +1,7 @@
-package org.main.util.graphics.components;
+package org.main.util.graphics.components.menu;
 
 import org.main.util.Koordinate;
+import org.main.util.graphics.components.AbstractComponent;
 
 import java.awt.*;
 import java.awt.event.*;

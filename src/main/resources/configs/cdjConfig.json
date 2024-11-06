@@ -1,1 +1,8 @@
-{"useCdj":true,"useCdjInit":false,"maxAttempts":10,"maxAttemptsInit":10,"sleepTimer":500,"sleepTimerInit":500}
+{
+  "useCdj": false,
+  "useCdjInit": false,
+  "maxAttempts": 10,
+  "maxAttemptsInit": 10,
+  "sleepTimer": 500,
+  "sleepTimerInit": 500
+}

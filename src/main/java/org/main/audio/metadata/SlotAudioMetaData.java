@@ -2,7 +2,7 @@ package org.main.audio.metadata;
 
 import lombok.Getter;
 import lombok.Setter;
-import org.main.util.graphics.components.Button;
+import org.main.util.graphics.components.button.Button;
 
 import java.util.List;
 

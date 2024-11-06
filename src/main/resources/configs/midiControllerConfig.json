@@ -1,1 +1,4 @@
-{"MidiControllerName":"Arturia MiniLab mkII","MidiControllerNameInit":"none"}
+{
+  "MidiControllerName": "NO-Midi",
+  "MidiControllerNameInit": "none"
+}

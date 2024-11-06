@@ -1,6 +1,7 @@
 package org.main.settings.objects;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import org.main.util.JsonLoader;
 import org.main.util.Logger;
 
@@ -18,7 +19,7 @@ public abstract class AbstractSettings {
     }
 
 
-    private static final Gson gson = new Gson();
+    private static final Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
     public <T> T load(T t) {
         String path = getPATH();

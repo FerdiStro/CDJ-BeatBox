@@ -1,1 +1,6 @@
-{"beatBoxWindowFullScreen":false,"beatBoxWindowFullScreenInit":true,"beatBoxWindowFullScreenBorderLess":false,"beatBoxWindowFullScreenBorderLessInit":true}
+{
+  "beatBoxWindowFullScreen": false,
+  "beatBoxWindowFullScreenInit": true,
+  "beatBoxWindowFullScreenBorderLess": false,
+  "beatBoxWindowFullScreenBorderLessInit": true
+}
