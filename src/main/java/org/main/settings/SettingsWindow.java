@@ -53,7 +53,7 @@ public class SettingsWindow extends JFrame {
     private final int midiBlackKnobX2 =midiBlackKnobX1;
     private final int midiBlackKnobY2= midiY + 96;
     private boolean midiBlackKnob2 = false;
-    private final SettingsDescribeFrame midiBlackKnob2SettingsFrame = new SettingsDescribeFrame( new Koordinate(midiBlackKnobX1, midiBlackKnobY1), "KNOB 2", "toggle-Mixer on/off", "Activate mixer for each slot, and switch between mixer and list of sound added to slot. ");
+    private final SettingsDescribeFrame midiBlackKnob2SettingsFrame = new SettingsDescribeFrame( new Koordinate(midiBlackKnobX2, midiBlackKnobY2), "KNOB 2", "toggle-Mixer on/off", "Activate mixer for each slot, and switch between mixer and list of sound added to slot. ");
 
 
     protected static SettingsWindow getInstance() {

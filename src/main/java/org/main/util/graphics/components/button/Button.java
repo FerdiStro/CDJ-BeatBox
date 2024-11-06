@@ -13,9 +13,7 @@ public class Button extends AbstractComponent {
     @Getter
     private boolean toggle = false;
 
-
     private final String name;
-
 
     private String state = "";
     private String onState = "";
@@ -33,8 +31,6 @@ public class Button extends AbstractComponent {
         this.offState = offState;
     }
 
-
-
     public void checkMouse(MouseEvent e, OnPress onPress){
         int mouseX = e.getX();
         int mouseY = e.getY();
@@ -45,7 +41,6 @@ public class Button extends AbstractComponent {
             }
             onPress.onPress();
         }
-
     }
 
     @Override
@@ -64,7 +59,6 @@ public class Button extends AbstractComponent {
         g2d.drawRect(getKoordinate().getX(), getKoordinate().getY(), getDimension().width, getDimension().height);
         g2d.setColor(Color.BLACK);
         g2d.drawString(tempName, getKoordinate().getX() + 2, getKoordinate().getY() + getDimension().height -5);
-
     }
 
     public void toggle(){

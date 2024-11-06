@@ -102,7 +102,7 @@ public class BeatBoxWindow extends JFrame {
 
 
     private Button patternSave = new Button(new Koordinate(100, 100 ), new Dimension(100, 100), "save");
-
+    private Button patternLoad = new Button(new Koordinate(100, 200), new Dimension(100, 100), "loadPattern");
 
 
 
@@ -152,10 +152,12 @@ public class BeatBoxWindow extends JFrame {
         setLayout(null);
 
 
+
         playerGridButton.setStateButton(true, "-ON", "-OFF");
         volumeSliderButton.setStateButton(true, "-ON", "-OFF");
 
         PlayerGrid playerGrid = PlayerGrid.getInstance();
+
         for (LibraryKind libraryKind : soundLibrary.getFolderView()) {
             JScrollPane tree = libraryKind.getTree();
             tree.setBounds(libraryX, libraryY, libraryWidth, libraryHeight);
@@ -172,20 +174,20 @@ public class BeatBoxWindow extends JFrame {
 
 
         //Pattern Example
-        PlayPattern pattern =  new PlayPattern("testPattern");
+//        PlayPattern pattern =  new PlayPattern("testPattern");
 
-        PlayerGrid patternGrid2 = new PlayerGrid();
+//        PlayerGrid patternGrid2 = new PlayerGrid();
+//
+//        File file2 = new File("src/main/resources/Sounds/OnShoot/kick/KICK_20.wav");
+//
+//        SlotAudio slotSoundA = new SlotAudio(file2, TYPE.SOUND);
+//        SlotAudio slotSoundB = new SlotAudio(file2, TYPE.SOUND);
+//
+//        patternGrid2.getSlots()[0].addSelectedSound(slotSoundA);
+//        patternGrid2.getSlots()[0].addSelectedSound(slotSoundB);
+//        pattern.setGrid(patternGrid2);
 
-        File file2 = new File("src/main/resources/Sounds/OnShoot/kick/KICK_20.wav");
-
-        SlotAudio slotSoundA = new SlotAudio(file2, TYPE.SOUND);
-        SlotAudio slotSoundB = new SlotAudio(file2, TYPE.SOUND);
-
-        patternGrid2.getSlots()[0].addSelectedSound(slotSoundA);
-        patternGrid2.getSlots()[0].addSelectedSound(slotSoundB);
-        pattern.setGrid(patternGrid2);
-
-
+        PatternManager patternManager = PatternManager.getInstance();
 
         jLabel = new JLabel() {
 
@@ -491,8 +493,7 @@ public class BeatBoxWindow extends JFrame {
                  */
                 if (volumeSliderButton.isToggle()) {
                     patternSave.draw(g2d);
-
-
+                    patternLoad.draw(g2d);
                 }
 
 
@@ -558,14 +559,17 @@ public class BeatBoxWindow extends JFrame {
                 /*
                     Pattern Manager
                  */
-                patternSave.checkMouse(e, () -> {
-//                    playerGrid.loadPattern(pattern);
-                    PatternManager patternManager = PatternManager.getInstance();
-                    patternManager.savePattern(pattern);
+                if (volumeSliderButton.isToggle()) {
+                    patternSave.checkMouse(e, () -> {
+                        patternManager.savePattern(new PlayPattern("test", playerGrid.getSlots()));
+                        repaint();
+                    });
 
+                    patternLoad.checkMouse(e, () ->{
+                        patternManager.loadPattern( playerGrid, "test");
+                    });
+                }
 
-                    repaint();
-                });
 
 
                 /*
@@ -839,6 +843,15 @@ public class BeatBoxWindow extends JFrame {
         playerGridButton.setRepositionAndSize(controlPanelX + (int) (dimension.width * 0.005),metaDataY + (int) (dimension.height * 0.005), (int) (dimension.width * 0.05) + 8 * fontSize, (int) (dimension.height * 0.03) );
         volumeSliderButton.setRepositionAndSize(playerGridButton.getX(),playerGridButton.getY() + playerGridButton.getDimension().height +   (int) (dimension.height * 0.005 ),  playerGridButton.getDimension().width,  playerGridButton.getDimension().height);
 
+        /*
+            Patterns
+         */
+
+
+
+        patternLoad.setRepositionAndSize(playGridX, (playGridY + sizeBeat + (int) (getHeight() * 0.1)) + (fontSize*2), playGridSize, playGridSize);
+        patternSave.setRepositionAndSize(playGridX, (playGridY + (2 * ( sizeBeat + (int) (getHeight() * 0.1)) + (fontSize*2))), playGridSize, playGridSize);
+
 
         /*
             Meta-data
@@ -855,6 +868,7 @@ public class BeatBoxWindow extends JFrame {
 
         }
         soundLibrary.updateFont(fontSizeImportant);
+
           /*
             Repaint
          */

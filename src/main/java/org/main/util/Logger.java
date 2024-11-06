@@ -14,6 +14,11 @@ public class Logger {
         System.out.println(" > Init : " + initClas.getName() +" t:"+  sdf.format(new Date()));
     }
 
+    public static void notImplemented(String message){
+        System.out.print((char)27 + "[33m Not Implemented :");
+        System.out.println((char)27 + "[39m " + message);
+    }
+
     public static void info(String message){
         System.out.print((char)27 + "[33m Info:");
         System.out.println((char)27 + "[39m " + message);

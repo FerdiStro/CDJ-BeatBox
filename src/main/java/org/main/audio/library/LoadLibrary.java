@@ -193,24 +193,46 @@ public class LoadLibrary {
         return 0;
     }
 
+    public SlotAudio loadSoundInCache(SlotAudio slotAudio){
+        SlotAudio cachedslotAudio = audioCache.get(slotAudio.getName());
+        if(cachedslotAudio != null){
+            return cachedslotAudio;
+        }
+        for(LibraryKind library : folderView){
+           if(library.getType().toString().equals(slotAudio.getPlayType().toString())){
+               File audioFile = getFileOutOfLib(library, slotAudio.getName());
+               cachedslotAudio = loadIn(audioFile, library.getType(), slotAudio.getName());
+               break;
+           }
+        }
+        return cachedslotAudio;
+    }
 
-
-    private SlotAudio loadSoundInCache(){
+    private File getFileOutOfLib(LibraryKind library, String soundname){
         File audioFile = null;
-        for(String path  : Objects.requireNonNull(getSelectedSound()).getFilePaths()){
-            if(path.contains(Objects.requireNonNull(getSelectedSound()).getSelectedTitel())){
+        for(String path  : Objects.requireNonNull(library).getFilePaths()){
+            if(path.contains(soundname)){
                 audioFile   = new File(path);
                 break;
             }
         }
+        return audioFile;
+    }
+
+    private SlotAudio loadIn(File audioFile, TYPE type , String name){
         try {
             assert audioFile != null;
-            SlotAudio audio =  new SlotAudio(audioFile, getSelectedSound().getType() );;
-            this.audioCache.put(getSelectedSound().getSelectedTitel(), audio);
+            SlotAudio audio =  new SlotAudio(audioFile, type );;
+            this.audioCache.put(name, audio);
             return audio;
         } catch (Exception e) {
             return null;
         }
+    }
+
+    private SlotAudio loadSoundInCache(){
+        File audioFile = getFileOutOfLib(Objects.requireNonNull(getSelectedSound()), Objects.requireNonNull(getSelectedSound()).getSelectedTitel());
+        return loadIn(audioFile,  getSelectedSound().getType(), getSelectedSound().getSelectedTitel());
     }
 
     public LibraryKind getSelectedSound(){
