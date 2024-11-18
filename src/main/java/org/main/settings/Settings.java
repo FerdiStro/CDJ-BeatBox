@@ -34,7 +34,8 @@ public class Settings {
     */
      List<AbstractSettings> settingsObjects = new ArrayList<>();
 
-    MidiControllerSettings midiControllerSettings;
+     @Getter
+     MidiControllerSettings midiControllerSettings;
 
     @Getter
     CDJSettings cdjSettings;

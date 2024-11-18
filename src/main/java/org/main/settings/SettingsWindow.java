@@ -2,11 +2,12 @@ package org.main.settings;
 
 
 import org.main.midi.MidiController;
+import org.main.util.Coordinates;
 import org.main.util.graphics.components.AbstractComponent;
 import org.main.util.graphics.components.menu.CustomDropdown;
 import org.main.util.graphics.SettingsDescribeFrame;
-import org.main.util.Koordinate;
 import org.main.util.Logger;
+import org.main.util.graphics.components.button.Button;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -23,6 +24,7 @@ public class SettingsWindow extends JFrame {
     private final int with = 700;
     private final int height = 700;
 
+    private final Font font =  new Font("Arial", Font.PLAIN, 30);
 
     private final int buttonWidth =  100;
     private final int buttonHeight = 50;
@@ -35,10 +37,10 @@ public class SettingsWindow extends JFrame {
         MIDI-MK2
      */
 
-    private boolean visMidiMk2 = true;
-    private final int buttonMidiMk2X = 20;
-    private final int buttonMidiMk2Y = 20;
-    private final String buttonMidiMk2Title = "Midi";
+
+
+    private final Button midiButton = new Button(new Coordinates(20, 20), new Dimension(buttonWidth, buttonHeight), "Midi");
+    private final Button midiDisableButton =  new Button(new Coordinates(midiButton.getX(), getY() + buttonHeight * 3), new Font("Arial", Font.PLAIN, 16),"Disable");
 
     private final int midiX  = 40;
     private final int midiY  = 200;
@@ -48,12 +50,12 @@ public class SettingsWindow extends JFrame {
     private final int midiBlackKnobX1 = midiX + 147;
     private final int midiBlackKnobY1= midiY + 43;
     private boolean midiBlackKnob1 = false;
-    private final SettingsDescribeFrame midiBlackKnob1SettingsFrame = new SettingsDescribeFrame( new Koordinate(midiBlackKnobX1, midiBlackKnobY1), "KNOB 1", "toggle-Slot on/off" ,"Activate Play slot. Switching from normal Sound and On-Shot sound");
+    private final SettingsDescribeFrame midiBlackKnob1SettingsFrame = new SettingsDescribeFrame( new Coordinates(midiBlackKnobX1, midiBlackKnobY1), "KNOB 1", "toggle-Slot on/off" ,"Activate Play slot. Switching from normal Sound and On-Shot sound");
 
     private final int midiBlackKnobX2 =midiBlackKnobX1;
     private final int midiBlackKnobY2= midiY + 96;
     private boolean midiBlackKnob2 = false;
-    private final SettingsDescribeFrame midiBlackKnob2SettingsFrame = new SettingsDescribeFrame( new Koordinate(midiBlackKnobX2, midiBlackKnobY2), "KNOB 2", "toggle-Mixer on/off", "Activate mixer for each slot, and switch between mixer and list of sound added to slot. ");
+    private final SettingsDescribeFrame midiBlackKnob2SettingsFrame = new SettingsDescribeFrame( new Coordinates(midiBlackKnobX2, midiBlackKnobY2), "KNOB 2", "toggle-Mixer on/off", "Activate mixer for each slot, and switch between mixer and list of sound added to slot. ");
 
 
     protected static SettingsWindow getInstance() {
@@ -75,6 +77,16 @@ public class SettingsWindow extends JFrame {
         setSize(with, height);
         setResizable(false);
 
+
+        midiButton.setStateButton();
+        midiButton.setToggle(true);
+
+        midiDisableButton.setStateButton();
+        midiDisableButton.setToggle(Settings.getInstance().getMidiControllerSettings().isMidiControllerDisable());
+        midiDisableButton.setToggleColorFullButton(true);
+        midiDisableButton.setToggleColor(Color.red);
+
+
         BufferedImage midiMk2Device;
         BufferedImage midiMk2BlackNoble;
 
@@ -86,7 +98,9 @@ public class SettingsWindow extends JFrame {
             throw new RuntimeException(e);
         }
 
-        CustomDropdown dropdown = new CustomDropdown(MidiController.getInstance(null).getMidiTransmittersNamesList(), new Koordinate(buttonMidiMk2X, 100), new Dimension(100,30 ) );
+
+
+        CustomDropdown dropdown = new CustomDropdown(MidiController.getInstance(null).getMidiTransmittersNamesList(), new Coordinates(midiButton.getX(), 100), new Dimension(100,30 ) );
 
         dropdown.addClickListener(new AbstractComponent.ComponentClickListener() {
             @Override
@@ -106,19 +120,18 @@ public class SettingsWindow extends JFrame {
                 super.paintComponent(g);
                 Graphics2D g2d = (Graphics2D) g;
 
-                g2d.setFont(new Font("Arial", Font.PLAIN, 30));
+                g2d.setFont(font);
 
+                midiButton.draw(g2d);
 
-                g2d.setColor(Color.ORANGE);
-                g2d.fillRect(buttonMidiMk2X, buttonMidiMk2Y, buttonWidth, buttonHeight);
-                g2d.setColor(Color.BLACK);
-                g2d.drawString(buttonMidiMk2Title, buttonMidiMk2X + 2 ,buttonMidiMk2Y + g.getFont().getSize());
 
 
 
                 //MidiMk2
-                if(visMidiMk2){
+                if(midiButton.isToggle()){
                     dropdown.draw(g2d);
+
+                    midiDisableButton.draw(g2d);
 
                     g2d.drawImage(midiMk2Device, midiX, midiY, midiWidth, midiHeight, null);
 
@@ -144,15 +157,17 @@ public class SettingsWindow extends JFrame {
         label.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
-                int mouseX = e.getX();
-                int mouseY = e.getY();
 
-                dropdown.clickEvent(e);
+                midiButton.clickMouse(e, () -> {
+                    repaint();
+                });
 
-                Rectangle buttonMidiMk2 = new Rectangle(buttonMidiMk2X, buttonMidiMk2Y, buttonWidth, buttonHeight);
-                if(buttonMidiMk2.contains(mouseX, mouseY)){
-                    visMidiMk2 = !visMidiMk2;
-                }
+                midiDisableButton.clickMouse(e, () -> {
+                    Settings.getInstance().getMidiControllerSettings().setMidiControllerDisable(midiDisableButton.isToggle());
+                    repaint();
+                });
+
+
             }
 
         });
@@ -171,6 +186,11 @@ public class SettingsWindow extends JFrame {
 
                 Rectangle rectangleKnob2 = new Rectangle(midiBlackKnobX2, midiBlackKnobY2, 80, 80);
                 midiBlackKnob2 = rectangleKnob2.contains(mouseX, mouseY);
+
+
+                midiButton.hoverMouse(e, Color.ORANGE, () -> {
+                    repaint();
+                });
 
             }
         });

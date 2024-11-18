@@ -1,6 +1,6 @@
 package org.main.util.graphics;
 
-import org.main.util.Koordinate;
+import org.main.util.Coordinates;
 import org.main.util.graphics.components.AbstractComponent;
 
 import java.awt.*;
@@ -10,23 +10,23 @@ public class SettingsDescribeFrame extends AbstractComponent {
     private final String name;
     private final String description;
     private final String function;
-    private final Koordinate koordinate;
+    private final Coordinates coordinates;
 
-    public SettingsDescribeFrame(Koordinate koordinate, String name,String function, String description) {
-        super(koordinate);
+    public SettingsDescribeFrame(Coordinates coordinates, String name, String function, String description) {
+        super(coordinates);
         this.name = name;
         this.description = description;
         this.function = function;
-        this.koordinate = koordinate;
+        this.coordinates = coordinates;
     }
 
 
     public void draw(Graphics2D g) {
 
-        g.drawLine(koordinate.getX() +  25, koordinate.getY() + 20, koordinate.getX() + 100, koordinate.getY() - 50);
+        g.drawLine(coordinates.getX() +  25, coordinates.getY() + 20, coordinates.getX() + 100, coordinates.getY() - 50);
 
-        int x = koordinate.getX() + 100;
-        int y = koordinate.getY() - 100;
+        int x = coordinates.getX() + 100;
+        int y = coordinates.getY() - 100;
 
         g.setColor(new Color(1f,0f,0f,.5f ));
         g.fillRect(x, y , 200, 350);

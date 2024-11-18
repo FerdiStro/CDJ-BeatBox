@@ -46,7 +46,9 @@ public class MidiController {
 
     private MidiController() {
         startGrpcColor();
-        setTransmitter();
+        if(!Settings.getInstance().getMidiControllerSettings().isMidiControllerDisable()){
+            setTransmitter();
+        }
     }
 
 
@@ -81,14 +83,21 @@ public class MidiController {
                 }catch (Exception e){
                     try {
                         Logger.debug("Transmitter failed to start, retry in "+count+"s : " + e.getMessage());
+                        if(Settings.getInstance().getMidiControllerSettings().isMidiControllerDisable()){
+                            Logger.info("Stop searching for transmitter. Searching in midi-settings disabled. To use Midi-Controller enable midi-settings again!");
+                            return;
+                        }
                         sleep(count * 1000L);
-                        Logger.debug(String.valueOf(count));
                         count = count + 2;
                         if(count < 60){
                             run();
                         }else{
                             Logger.error("To many attempts, no Midi-device found");
+
                         }
+
+
+
                     } catch (Exception treadProblem) {
                         treadProblem.printStackTrace();
                     }

@@ -208,15 +208,15 @@ public class LoadLibrary {
         return cachedslotAudio;
     }
 
-    private File getFileOutOfLib(LibraryKind library, String soundname){
-        File audioFile = null;
-        for(String path  : Objects.requireNonNull(library).getFilePaths()){
-            if(path.contains(soundname)){
-                audioFile   = new File(path);
-                break;
+    private File getFileOutOfLib(LibraryKind library, String soundName){
+            File audioFile = null;
+            for(String path  : Objects.requireNonNull(library).getFilePaths()){
+                if(path.contains(soundName)){
+                    audioFile   = new File(path);
+                    break;
+                }
             }
-        }
-        return audioFile;
+            return audioFile;
     }
 
     private SlotAudio loadIn(File audioFile, TYPE type , String name){

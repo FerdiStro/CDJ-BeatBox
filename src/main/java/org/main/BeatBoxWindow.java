@@ -18,21 +18,17 @@ import org.main.audio.playegrid.Slot;
 import org.main.audio.playegrid.SlotAudio;
 import org.main.midi.MidiController;
 import org.main.settings.Settings;
-import org.main.util.Koordinate;
+import org.main.util.Coordinates;
 import org.main.util.Logger;
 import org.main.util.MidiByteMapper;
 import org.main.util.graphics.StringTruncationUtil;
-import org.main.util.graphics.components.AbstractComponent;
 import org.main.util.graphics.components.button.Button;
-import org.main.util.graphics.components.button.OnPress;
 
-import javax.imageio.ImageIO;
 import javax.sound.midi.*;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
-import java.io.IOException;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.*;
@@ -44,6 +40,9 @@ import java.util.concurrent.ScheduledExecutorService;
 public class BeatBoxWindow extends JFrame {
 
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+
+    private Color backgroundTime = Color.white;
+
 
     private int fontSize = 0;
     private int fontSizeImportant = 0;
@@ -67,11 +66,10 @@ public class BeatBoxWindow extends JFrame {
     private Map<Integer, ExtendedTrackMetaData> metaData;
 
 
-
-    private  int metaDataX;
-    private  int metaDataY;
-    private  int metaDataHeight;
-    private  int metaDataWidth;
+    private int metaDataX;
+    private int metaDataY;
+    private int metaDataHeight;
+    private int metaDataWidth;
 
     private int playGridX;
     private int playGridY;
@@ -96,27 +94,21 @@ public class BeatBoxWindow extends JFrame {
     private int controlPanelHeight;
 
 
-
-    private Button playerGridButton = new Button(new Koordinate(0, 0), new Dimension(200, 10), "toggle-slot");
-    private Button volumeSliderButton = new Button(new Koordinate(0, 0), new Dimension(200, 10), "togglePlayerGrid");
-
-
-    private Button patternSave = new Button(new Koordinate(100, 100 ), new Dimension(100, 100), "save");
-    private Button patternLoad = new Button(new Koordinate(100, 200), new Dimension(100, 100), "loadPattern");
+    private Button playerGridButton = new Button(new Coordinates(0, 0), new Dimension(200, 10), "toggle-slot");
+    private Button volumeSliderButton = new Button(new Coordinates(0, 0), new Dimension(200, 10), "togglePlayerGrid");
+    private Button clearSlotsButton = new Button(new Coordinates(0, 0), new Dimension(100, 100), "clear");
 
 
+    private Button patternSaveButton = new Button(new Coordinates(100, 100), new Dimension(100, 100), "save");
+    private Button patternLoadButton = new Button(new Coordinates(100, 200), new Dimension(100, 100), "loadPattern");
 
 
-    private final HashMap<String, Koordinate> kordSlotList = new HashMap<>();
-    private final HashMap<String, Koordinate> kordSlotMarkList = new HashMap<>();
-    private final HashMap<String, Koordinate> kordSlotRemoveList = new HashMap<>();
+    private Button settingsButton = new Button(new Coordinates(0, 0), new Dimension(100, 100), new File("src/main/resources/Image/settings_button.png"));
 
 
-    private int settingsSize;
-
-
-    private int settingsButtonX = xBeat;
-    private int settingsButtonY = yBeat + settingsSize;
+    private final HashMap<String, Coordinates> kordSlotList = new HashMap<>();
+    private final HashMap<String, Coordinates> kordSlotMarkList = new HashMap<>();
+    private final HashMap<String, Coordinates> kordSlotRemoveList = new HashMap<>();
 
 
     private List<SlotAudio> shotList = new ArrayList<>();
@@ -152,9 +144,12 @@ public class BeatBoxWindow extends JFrame {
         setLayout(null);
 
 
+        playerGridButton.setStateButton("-ON", "-OFF");
+        volumeSliderButton.setStateButton("-ON", "-OFF");
 
-        playerGridButton.setStateButton(true, "-ON", "-OFF");
-        volumeSliderButton.setStateButton(true, "-ON", "-OFF");
+        patternLoadButton.setBackgroundColor(Color.LIGHT_GRAY);
+        patternSaveButton.setBackgroundColor(Color.LIGHT_GRAY);
+
 
         PlayerGrid playerGrid = PlayerGrid.getInstance();
 
@@ -172,21 +167,6 @@ public class BeatBoxWindow extends JFrame {
             }
         });
 
-
-        //Pattern Example
-//        PlayPattern pattern =  new PlayPattern("testPattern");
-
-//        PlayerGrid patternGrid2 = new PlayerGrid();
-//
-//        File file2 = new File("src/main/resources/Sounds/OnShoot/kick/KICK_20.wav");
-//
-//        SlotAudio slotSoundA = new SlotAudio(file2, TYPE.SOUND);
-//        SlotAudio slotSoundB = new SlotAudio(file2, TYPE.SOUND);
-//
-//        patternGrid2.getSlots()[0].addSelectedSound(slotSoundA);
-//        patternGrid2.getSlots()[0].addSelectedSound(slotSoundB);
-//        pattern.setGrid(patternGrid2);
-
         PatternManager patternManager = PatternManager.getInstance();
 
         jLabel = new JLabel() {
@@ -203,6 +183,10 @@ public class BeatBoxWindow extends JFrame {
                 Graphics2D g2d = (Graphics2D) g;
 
                 g2d.setFont(font);
+
+                g2d.setColor(backgroundTime);
+                g2d.fillRect(0, 0, getWidth(), getHeight());
+
 
                 soundLibrary.updateVis();
 
@@ -233,16 +217,6 @@ public class BeatBoxWindow extends JFrame {
                     g2d.drawString("Set-UP Waiting", setUpStringX, masterY);
                 }
 
-                /*
-                    Settings-Button
-                */
-                g2d.drawRect(settingsButtonX, settingsButtonY, settingsSize, settingsSize);
-                try {
-                    g2d.drawImage(ImageIO.read(new File("src/main/resources/Image/settings_button.png")), settingsButtonX, settingsButtonY, settingsSize, settingsSize, null);
-                } catch (IOException e) {
-                    Logger.error("Error while reading Settings-Image");
-                    throw new RuntimeException(e);
-                }
 
                 /*
                     Meta-data
@@ -252,8 +226,6 @@ public class BeatBoxWindow extends JFrame {
 
                         ExtendedTrackMetaData trackMetadata = metaData.get(playerNumber);
                         int x = metaDataX * playerNumber + (metaDataWidth * playerNumber - metaDataWidth);
-
-
 
 
                         if (trackMetadata != null) {
@@ -268,12 +240,12 @@ public class BeatBoxWindow extends JFrame {
                              */
                             List<String> recommendations = metadataFinder.findRecommendations(trackMetadata.getTitle());
 
-                            if(recommendations != null ){
+                            if (recommendations != null) {
 
-                                for(int i =  0 ; i != recommendations.size(); i ++){
+                                for (int i = 0; i != recommendations.size(); i++) {
                                     SlotAudioMetaData slotAudio = metadataFinder.getMetaData(recommendations.get(i));
 
-                                    g2d.drawString(slotAudio.getShortName(), x + (int)(slotAudio.getShortName().length() * getWidth() * (i + 1) * 0.01), (int) (metaDataY + getHeight() * 0.25 + fontSize));
+                                    g2d.drawString(slotAudio.getShortName(), x + (int) (slotAudio.getShortName().length() * getWidth() * (i + 1) * 0.01), (int) (metaDataY + getHeight() * 0.25 + fontSize));
                                 }
 
 //                                if(trackMetadata.getButton() == null){
@@ -289,19 +261,19 @@ public class BeatBoxWindow extends JFrame {
                             /*
                                Other meta-data
                              */
-                            StringTruncationUtil.drawStringWithMaxWidth(g2d, trackMetadata.getTitle(), (int) (x + getX() * 0.02), (int) (metaDataY + getY() * 0.2 + fontSize ) , metaDataWidth - fontSize * 3 );
+                            StringTruncationUtil.drawStringWithMaxWidth(g2d, trackMetadata.getTitle(), (int) (x + getX() * 0.02), (int) (metaDataY + getY() * 0.2 + fontSize), metaDataWidth - fontSize * 3);
 
                             BeatBoxWindow.this.setBackground(g2d, masterDeviceId, playerNumber);
                             g2d.drawString(playerNumber.toString(), x + metaDataWidth - fontSize, metaDataY + fontSize);
                             g2d.setColor(Color.BLACK);
 
-                            int y =  (int) (metaDataY + getHeight() * 0.01 + fontSize);
+                            int y = (int) (metaDataY + getHeight() * 0.01 + fontSize);
 
                             try {
                                 AlbumArt latestArtFor = ArtFinder.getInstance().getLatestArtFor(playerNumber);
 
 
-                                g2d.drawImage(latestArtFor.getImage(), (int) (x + getWidth() * 0.008), y , getHeight()/5, getHeight()/5, null);
+                                g2d.drawImage(latestArtFor.getImage(), (int) (x + getWidth() * 0.008), y, getHeight() / 5, getHeight() / 5, null);
                             } catch (Exception e) {
                                 //ignore some Times picture miss
                             }
@@ -311,11 +283,11 @@ public class BeatBoxWindow extends JFrame {
                             DecimalFormatSymbols dfs = new DecimalFormatSymbols(Locale.US);
                             dfs.setDecimalSeparator('.');
                             df.setDecimalFormatSymbols(dfs);
-                            x =  (int) (x + getWidth() * 0.008 +  (double) getHeight() /5 );
+                            x = (int) (x + getWidth() * 0.008 + (double) getHeight() / 5);
 
                             g2d.drawString(df.format(trackMetadata.getTempo() / 100.0), x, y + fontSize);
-                            g2d.drawString(trackMetadata.getArtist(), x , y + fontSize * 2 );
-                            g2d.drawString(trackMetadata.getKey(), x , y + fontSize * 3);
+                            g2d.drawString(trackMetadata.getArtist(), x, y + fontSize * 2);
+                            g2d.drawString(trackMetadata.getKey(), x, y + fontSize * 3);
 
                         }
                     }
@@ -326,20 +298,28 @@ public class BeatBoxWindow extends JFrame {
                     ToggleSwitch
                 */
 
-                g2d.setColor(Color.LIGHT_GRAY);
+                g2d.setColor(Color.lightGray);
                 g2d.fillRect(controlPanelX, controlPanelY, controlPanelWith, controlPanelHeight);
 
+                /*
+                    Buttons
+                 */
 
                 playerGridButton.draw(g2d);
                 volumeSliderButton.draw(g2d);
+                clearSlotsButton.draw(g2d);
 
+                settingsButton.draw(g2d);
+
+                if (volumeSliderButton.isToggle()) {
+                    patternSaveButton.draw(g2d);
+                    patternLoadButton.draw(g2d);
+                }
 
 
                 /*
                     PlayerGrid
                  */
-
-
                 for (int i = 0; i != playerGrid.getSlots().length; i++) {
 
 
@@ -368,17 +348,17 @@ public class BeatBoxWindow extends JFrame {
                     g2d.drawString("" + tempI, x, playGridY);
                     g2d.fillRect(x, playGridY + 4, playGridSize, playGridSize);
 
-                    if(playerGridButton.isToggle()){
+                    if (playerGridButton.isToggle()) {
                         g2d.setColor(Color.WHITE);
-                        switch (tempI){
+                        switch (tempI) {
                             case 1:
-                                g2d.drawString(String.valueOf(TYPE.ONE_BEST.getBeatHit()), x + fontSize , playGridY+ playGridSize - fontSize);
+                                g2d.drawString(String.valueOf(TYPE.ONE_BEST.getBeatHit()), x + fontSize, playGridY + playGridSize - fontSize);
                                 break;
                             case 2:
-                                g2d.drawString(String.valueOf(TYPE.TWO_BEAT.getBeatHit()), x + fontSize, playGridY+ playGridSize - fontSize);
+                                g2d.drawString(String.valueOf(TYPE.TWO_BEAT.getBeatHit()), x + fontSize, playGridY + playGridSize - fontSize);
                                 break;
                             case 3:
-                                g2d.drawString(String.valueOf(TYPE.FOUR_BEAT.getBeatHit()), x + fontSize, playGridY+ playGridSize - fontSize);
+                                g2d.drawString(String.valueOf(TYPE.FOUR_BEAT.getBeatHit()), x + fontSize, playGridY + playGridSize - fontSize);
                                 break;
                         }
                     }
@@ -422,20 +402,20 @@ public class BeatBoxWindow extends JFrame {
                         /*
                             Player grid list
                          */
-                        if(!playerGridButton.isToggle()){
+                        if (!playerGridButton.isToggle()) {
                             for (int j = 0; j != slot.getSelectedSounds().size(); j++) {
-                                int kordY = (playGridY + sizeBeat + (int) (getHeight() * 0.1)) + (fontSize*2 * (j+1)) ;
+                                int kordY = (playGridY + sizeBeat + (int) (getHeight() * 0.1)) + (fontSize * 2 * (j + 1));
 
-                                Koordinate koordinate = new Koordinate(x, kordY);
+                                Coordinates coordinates = new Coordinates(x, kordY);
 
-                                if (kordSlotRemoveList.get(koordinate.getName()) != null) {
+                                if (kordSlotRemoveList.get(coordinates.getName()) != null) {
                                     SlotAudio slotAudio = slot.getSelectedSounds().get(j);
                                     removeSlotAudio.add(slotAudio);
-                                    kordSlotRemoveList.remove(koordinate.getName());
-                                }else{
-                                    kordSlotList.put(koordinate.getName(), koordinate);
+                                    kordSlotRemoveList.remove(coordinates.getName());
+                                } else {
+                                    kordSlotList.put(coordinates.getName(), coordinates);
 
-                                    if (kordSlotMarkList.get(koordinate.getName()) != null) {
+                                    if (kordSlotMarkList.get(coordinates.getName()) != null) {
                                         g2d.setColor(Color.ORANGE);
                                     } else {
                                         g2d.setColor(Color.LIGHT_GRAY);
@@ -444,10 +424,10 @@ public class BeatBoxWindow extends JFrame {
                                     g2d.fillRect(x, kordY, playGridSize, fontSize * 2);
                                     g2d.setColor(Color.BLACK);
 
-                                    if(metadataFinder.getMetaData(slot.getSelectedSounds().get(j).getName()) !=  null){
-                                        StringTruncationUtil.drawStringWithMaxWidth(g2d,metadataFinder.getMetaData(slot.getSelectedSounds().get(j).getName()).getShortName(), x, kordY + fontSize, playGridSize);
-                                    }else{
-                                        StringTruncationUtil.drawStringWithMaxWidth(g2d,slot.getSelectedSounds().get(j).getName(), x, kordY  + fontSize, playGridSize);
+                                    if (metadataFinder.getMetaData(slot.getSelectedSounds().get(j).getName()) != null) {
+                                        StringTruncationUtil.drawStringWithMaxWidth(g2d, metadataFinder.getMetaData(slot.getSelectedSounds().get(j).getName()).getShortName(), x, kordY + fontSize, playGridSize);
+                                    } else {
+                                        StringTruncationUtil.drawStringWithMaxWidth(g2d, slot.getSelectedSounds().get(j).getName(), x, kordY + fontSize, playGridSize);
                                     }
 
                                 }
@@ -457,21 +437,21 @@ public class BeatBoxWindow extends JFrame {
                         /*
                             One-shot list
                         */
-                        if(playerGridButton.isToggle()){
-                            int kordY = playGridY + playGridSize + fontSize*3;
-                            g2d.drawString("PlayList: ", playGridX , kordY);
+                        if (playerGridButton.isToggle()) {
+                            int kordY = playGridY + playGridSize + fontSize * 3;
+                            g2d.drawString("PlayList: ", playGridX, kordY);
 
-                            for(int j = 0; j !=  shotList.size(); j ++){
+                            for (int j = 0; j != shotList.size(); j++) {
                                 int kordX = playGridX + sizeBeat + (int) (getHeight() * 0.08) + fontSize * (j + 1) + fontSize * 2;
 
-                                g2d.drawString(String.valueOf(shotList.get(j).getPlayType().getBeatHit()), kordX , kordY);
+                                g2d.drawString(String.valueOf(shotList.get(j).getPlayType().getBeatHit()), kordX, kordY);
 
                             }
 
                         }
 
 
-                        if(!removeSlotAudio.isEmpty()) {
+                        if (!removeSlotAudio.isEmpty()) {
                             for (SlotAudio slotAudio : removeSlotAudio) {
                                 slot.getSelectedSounds().remove(slotAudio);
                             }
@@ -488,13 +468,7 @@ public class BeatBoxWindow extends JFrame {
                 }
 
 
-                /*
-                    Pattern Manager
-                 */
-                if (volumeSliderButton.isToggle()) {
-                    patternSave.draw(g2d);
-                    patternLoad.draw(g2d);
-                }
+
 
 
 
@@ -553,20 +527,27 @@ public class BeatBoxWindow extends JFrame {
                 /*
                     Toggle beat-button
                  */
-                playerGridButton.checkMouse(e, () -> repaint());
-                volumeSliderButton.checkMouse(e, () -> repaint());
+                playerGridButton.clickMouse(e, () -> repaint());
+                volumeSliderButton.clickMouse(e, () -> repaint());
+                clearSlotsButton.clickMouse(e, () -> {
+                    playerGrid.clearSlots();
+                    repaint();
+                });
+
 
                 /*
                     Pattern Manager
                  */
                 if (volumeSliderButton.isToggle()) {
-                    patternSave.checkMouse(e, () -> {
+                    patternSaveButton.clickMouse(e, () -> {
                         patternManager.savePattern(new PlayPattern("test", playerGrid.getSlots()));
                         repaint();
+
                     });
 
-                    patternLoad.checkMouse(e, () ->{
-                        patternManager.loadPattern( playerGrid, "test");
+                    patternLoadButton.clickMouse(e, () -> {
+                        patternManager.loadPattern(playerGrid, "test");
+                        repaint();
                     });
                 }
 
@@ -582,17 +563,17 @@ public class BeatBoxWindow extends JFrame {
 
                     Rectangle rect = new Rectangle(x + 2, playGridY, playGridSize, playGridSize);
                     if (rect.contains(mouseX, mouseY)) {
-                        if(playerGridButton.isToggle()){
-                            if(tempI == 1){
-                                shotList.add(new SlotAudio(soundLibrary.getSelectedSlotAudio(),  TYPE.ONE_BEST));
+                        if (playerGridButton.isToggle()) {
+                            if (tempI == 1) {
+                                shotList.add(new SlotAudio(soundLibrary.getSelectedSlotAudio(), TYPE.ONE_BEST));
                             }
-                            if(tempI == 2){
+                            if (tempI == 2) {
                                 shotList.add(new SlotAudio(soundLibrary.getSelectedSlotAudio(), TYPE.TWO_BEAT));
                             }
-                            if(tempI == 3){
+                            if (tempI == 3) {
                                 shotList.add(new SlotAudio(soundLibrary.getSelectedSlotAudio(), TYPE.FOUR_BEAT));
                             }
-                        }else{
+                        } else {
                             slot.addSelectedSound(soundLibrary.getSelectedSlotAudio());
                             soundLibrary.getSelectedSound().stopRreListen();
                         }
@@ -616,21 +597,20 @@ public class BeatBoxWindow extends JFrame {
                 /*
                     Settings-button
                  */
-                Rectangle settingsButtonRect = new Rectangle(settingsButtonX, settingsButtonY, settingsSize, settingsSize);
-                if (settingsButtonRect.contains(mouseX, mouseY)) {
+                settingsButton.clickMouse(e, () -> {
                     toggleSettingWindow();
                     repaint();
-                }
+                });
 
                 /*
                    Sound-list
                 */
                 for (String kordName : kordSlotList.keySet()) {
-                    Koordinate koordinate = kordSlotList.get(kordName);
-                    Rectangle kordListRect = new Rectangle(koordinate.getX(), koordinate.getY(), playGridSize, fontSize * 2);
+                    Coordinates coordinates = kordSlotList.get(kordName);
+                    Rectangle kordListRect = new Rectangle(coordinates.getX(), coordinates.getY(), playGridSize, fontSize * 2);
 
                     if (kordListRect.contains(mouseX, mouseY)) {
-                        kordSlotRemoveList.put(kordName, koordinate);
+                        kordSlotRemoveList.put(kordName, coordinates);
                     }
                 }
 
@@ -647,26 +627,31 @@ public class BeatBoxWindow extends JFrame {
 
             @Override
             public void mouseMoved(MouseEvent e) {
-                int mouseX = e.getX();
-                int mouseY = e.getY();
+
+                clearSlotsButton.hoverMouse(e, Color.ORANGE, () -> repaint());
+                patternLoadButton.hoverMouse(e, Color.ORANGE, () -> repaint());
+                patternSaveButton.hoverMouse(e, Color.ORANGE, () -> repaint());
+                settingsButton.hoverMouse(e, new Color(182, 182, 182), () -> repaint());
+
 
                 /*
                    Sound-list
                 */
+                int mouseX = e.getX();
+                int mouseY = e.getY();
+
                 for (String kordName : kordSlotList.keySet()) {
-                    Koordinate koordinate = kordSlotList.get(kordName);
-                    Rectangle kordListRect = new Rectangle(koordinate.getX(), koordinate.getY(), playGridSize, fontSize * 2);
+                    Coordinates coordinates = kordSlotList.get(kordName);
+                    Rectangle kordListRect = new Rectangle(coordinates.getX(), coordinates.getY(), playGridSize, fontSize * 2);
                     if (kordListRect.contains(mouseX, mouseY)) {
-                        kordSlotMarkList.put(kordName, koordinate);
+                        kordSlotMarkList.put(kordName, coordinates);
                     } else {
                         kordSlotMarkList.remove(kordName);
                     }
                 }
                 repaint();
             }
-
         });
-
 
         MidiController midiController = MidiController.getInstance(null);
         midiController.setReceiver(new Receiver() {
@@ -702,13 +687,13 @@ public class BeatBoxWindow extends JFrame {
                                 /*
                                     Play slot in beat
                                  */
-                                if(sm.getData1() == 36){
+                                if (sm.getData1() == 36) {
                                     shotList.add(new SlotAudio(soundLibrary.getSelectedSlotAudio(), TYPE.ONE_BEST));
                                 }
-                                if(sm.getData1() == 37){
+                                if (sm.getData1() == 37) {
                                     shotList.add(new SlotAudio(soundLibrary.getSelectedSlotAudio(), TYPE.TWO_BEAT));
                                 }
-                                if(sm.getData1() == 38){
+                                if (sm.getData1() == 38) {
                                     shotList.add(new SlotAudio(soundLibrary.getSelectedSlotAudio(), TYPE.FOUR_BEAT));
                                 }
                             }
@@ -756,7 +741,7 @@ public class BeatBoxWindow extends JFrame {
         jLabel.repaint();
     }
 
-    private final ScheduledExecutorService beatPlayer = Executors.newScheduledThreadPool(1);
+//    private final ScheduledExecutorService beatPlayer = Executors.newScheduledThreadPool(1);
 
     public void setCounterBeat(int counterBeat) {
         try {
@@ -768,15 +753,13 @@ public class BeatBoxWindow extends JFrame {
         }
         this.counterBeat = counterBeat;
         jLabel.repaint();
-
     }
-
 
     public void resizeFrame(Dimension dimension) {
         fontSize = Math.min(dimension.width, dimension.height) / 40;
 
         //todo: set other important fonts with this size
-        fontSizeImportant =  fontSize + 20;
+        fontSizeImportant = fontSize + 20;
 
 
         jLabel.setBounds(0, 0, dimension.width, dimension.height);
@@ -802,9 +785,8 @@ public class BeatBoxWindow extends JFrame {
         /*
             Settings-Button
          */
-        settingsSize = (int) (Math.min(dimension.width, dimension.height) * 0.05);
-        settingsButtonX = xBeat;
-        settingsButtonY = yBeat - settingsSize / 3 + settingsSize;
+        int settingsSize = (int) (Math.min(dimension.width, dimension.height) * 0.05);
+        settingsButton.setRepositionAndSize(xBeat, yBeat - settingsSize / 3 + settingsSize, settingsSize, settingsSize);
 
         /*
                 todo: meta-data
@@ -839,26 +821,21 @@ public class BeatBoxWindow extends JFrame {
         controlPanelWith = (int) (dimension.width * 0.3);
         controlPanelHeight = (int) (dimension.height * 0.3);
 
-
-        playerGridButton.setRepositionAndSize(controlPanelX + (int) (dimension.width * 0.005),metaDataY + (int) (dimension.height * 0.005), (int) (dimension.width * 0.05) + 8 * fontSize, (int) (dimension.height * 0.03) );
-        volumeSliderButton.setRepositionAndSize(playerGridButton.getX(),playerGridButton.getY() + playerGridButton.getDimension().height +   (int) (dimension.height * 0.005 ),  playerGridButton.getDimension().width,  playerGridButton.getDimension().height);
+        playerGridButton.setRepositionAndSize(controlPanelX + (int) (dimension.width * 0.005), metaDataY + (int) (dimension.height * 0.005), (int) (dimension.width * 0.05) + 8 * fontSize, (int) (dimension.height * 0.03));
+        volumeSliderButton.setRepositionAndSize(playerGridButton.getX(), playerGridButton.getY() + playerGridButton.getDimension().height + (int) (dimension.height * 0.005), playerGridButton.getDimension().width, playerGridButton.getDimension().height);
+        clearSlotsButton.setRepositionAndSize(playerGridButton.getX(), playerGridButton.getY() + 2 * (playerGridButton.getDimension().height + (int) (dimension.height * 0.01)), playerGridButton.getDimension().width / 3, playerGridButton.getDimension().height * 2);
 
         /*
             Patterns
          */
-
-
-
-        patternLoad.setRepositionAndSize(playGridX, (playGridY + sizeBeat + (int) (getHeight() * 0.1)) + (fontSize*2), playGridSize, playGridSize);
-        patternSave.setRepositionAndSize(playGridX, (playGridY + (2 * ( sizeBeat + (int) (getHeight() * 0.1)) + (fontSize*2))), playGridSize, playGridSize);
-
+        patternLoadButton.setRepositionAndSize(playGridX, (playGridY + sizeBeat + (int) (getHeight() * 0.1)) + (fontSize * 2), playGridSize, playGridSize);
+        patternSaveButton.setRepositionAndSize(playGridX, (playGridY + (2 * (sizeBeat + (int) (getHeight() * 0.1)) + (fontSize * 2))), playGridSize, playGridSize);
 
         /*
             Meta-data
          */
-        metaDataX = settingsButtonX + (int) (dimension.width * 0.005) ;
-        metaDataY = settingsButtonY + (int) (dimension.height * 0.1);
-
+        metaDataX = settingsButton.getX() + (int) (dimension.width * 0.005);
+        metaDataY = settingsButton.getY() + (int) (dimension.height * 0.1);
 
         /*
             Library
@@ -880,12 +857,12 @@ public class BeatBoxWindow extends JFrame {
         Settings.getInstance().toggleVisible();
     }
 
-    public void setMetaData(Map<Integer, TrackMetadata>  trackMetadata){
+    public void setMetaData(Map<Integer, TrackMetadata> trackMetadata) {
         HashMap<Integer, ExtendedTrackMetaData> mappedMetaData = new HashMap<>();
         for (Integer key : trackMetadata.keySet()) {
             mappedMetaData.put(key, new ExtendedTrackMetaData(trackMetadata.get(key)));
         }
-        this.metaData =  mappedMetaData;
+        this.metaData = mappedMetaData;
     }
 
 }
