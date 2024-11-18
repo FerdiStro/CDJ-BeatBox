@@ -21,4 +21,10 @@ public class PlayerGrid {
     public Slot[] getSlots() {
         return slots;
     }
+
+    public void clearSlots(){
+        for(int i = 0; i < slots.length; i++){
+            slots[i] = new Slot();
+        }
+    }
 }

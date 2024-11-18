@@ -2,15 +2,13 @@
   "name": "test",
   "slotList": [
     {
+      "selectedSounds": []
+    },
+    {
       "selectedSounds": [
         {
           "playType": "SOUND",
-          "name": "Mzperx_KICK_02.wav",
-          "volume": 0.5
-        },
-        {
-          "playType": "SOUND",
-          "name": "Mzperx_KICK_19.wav",
+          "name": "Mzperx_KICK_13.wav",
           "volume": 0.5
         }
       ]
@@ -19,17 +17,7 @@
       "selectedSounds": [
         {
           "playType": "SOUND",
-          "name": "Mzperx_KICK_02.wav",
-          "volume": 0.5
-        },
-        {
-          "playType": "SOUND",
-          "name": "Mzperx_KICK_04.wav",
-          "volume": 0.5
-        },
-        {
-          "playType": "SOUND",
-          "name": "Mzperx_KICK_19.wav",
+          "name": "Mzperx_KICK_13.wav",
           "volume": 0.5
         }
       ]
@@ -38,17 +26,19 @@
       "selectedSounds": [
         {
           "playType": "SOUND",
-          "name": "Mzperx_KICK_02.wav",
+          "name": "Mzperx_KICK_13.wav",
           "volume": 0.5
-        },
+        }
+      ]
+    },
+    {
+      "selectedSounds": []
+    },
+    {
+      "selectedSounds": [
         {
           "playType": "SOUND",
-          "name": "Mzperx_KICK_04.wav",
-          "volume": 0.5
-        },
-        {
-          "playType": "SOUND",
-          "name": "Mzperx_KICK_19.wav",
+          "name": "Mzperx_KICK_13.wav",
           "volume": 0.5
         }
       ]
@@ -57,81 +47,13 @@
       "selectedSounds": [
         {
           "playType": "SOUND",
-          "name": "Mzperx_KICK_02.wav",
-          "volume": 0.5
-        },
-        {
-          "playType": "SOUND",
-          "name": "Mzperx_KICK_19.wav",
-          "volume": 0.5
-        },
-        {
-          "playType": "SOUND",
-          "name": "Mzperx_KICK_12.wav",
+          "name": "Mzperx_KICK_13.wav",
           "volume": 0.5
         }
       ]
     },
     {
-      "selectedSounds": [
-        {
-          "playType": "SOUND",
-          "name": "Mzperx_KICK_02.wav",
-          "volume": 0.5
-        },
-        {
-          "playType": "SOUND",
-          "name": "Mzperx_KICK_19.wav",
-          "volume": 0.5
-        },
-        {
-          "playType": "SOUND",
-          "name": "Mzperx_KICK_12.wav",
-          "volume": 0.5
-        }
-      ]
-    },
-    {
-      "selectedSounds": [
-        {
-          "playType": "SOUND",
-          "name": "Mzperx_KICK_02.wav",
-          "volume": 0.5
-        },
-        {
-          "playType": "SOUND",
-          "name": "Mzperx_KICK_04.wav",
-          "volume": 0.5
-        }
-      ]
-    },
-    {
-      "selectedSounds": [
-        {
-          "playType": "SOUND",
-          "name": "Mzperx_KICK_02.wav",
-          "volume": 0.5
-        },
-        {
-          "playType": "SOUND",
-          "name": "Mzperx_KICK_19.wav",
-          "volume": 0.5
-        }
-      ]
-    },
-    {
-      "selectedSounds": [
-        {
-          "playType": "SOUND",
-          "name": "Mzperx_KICK_02.wav",
-          "volume": 0.5
-        },
-        {
-          "playType": "SOUND",
-          "name": "Mzperx_KICK_19.wav",
-          "volume": 0.5
-        }
-      ]
+      "selectedSounds": []
     }
   ]
 }

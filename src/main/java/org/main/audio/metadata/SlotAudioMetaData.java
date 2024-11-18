@@ -15,7 +15,7 @@ public class SlotAudioMetaData {
     private String shortName;
     private List<String> recommendationSongs;
 
-    private Button button;
+    private transient Button button;
 
 
 

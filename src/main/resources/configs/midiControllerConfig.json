@@ -1,4 +1,6 @@
 {
   "MidiControllerName": "NO-Midi",
-  "MidiControllerNameInit": "none"
+  "MidiControllerNameInit": "none",
+  "MidiControllerDisable": false,
+  "MidiControllerDisableInit": true
 }
