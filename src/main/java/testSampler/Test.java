@@ -1,6 +1,7 @@
 package testSampler;
 
-import testSampler.Audio.Audio;
+import testSampler.Audio.AudioFrame;
+import testSampler.Audio.AudioPlayer;
 
 import javax.sound.sampled.*;
 import java.io.File;
@@ -13,12 +14,28 @@ public class Test {
 
 
     public static void main(String[] args) throws UnsupportedAudioFileException, IOException, LineUnavailableException, InterruptedException {
-        AudioInputStream audioInputStream = AudioSystem.getAudioInputStream(new File(AUDIO_2));
+        AudioInputStream audioInputStream_1 = AudioSystem.getAudioInputStream(new File(AUDIO_1));
+        AudioInputStream audioInputStream_2 = AudioSystem.getAudioInputStream(new File(AUDIO_2));
 
-        Audio audio = new Audio(audioInputStream);
-        audio.play();
 
-        Thread.sleep(1000);
+        AudioPlayer audioPlayer =  new AudioPlayer();
+
+
+        AudioInputStream combine = audioPlayer.combine(audioInputStream_1, audioInputStream_2);
+
+
+        audioPlayer.play(combine);
+
+//        audioPlayer.play(audioInputStream_1);
+//        audioPlayer.play(audioInputStream_2);
+
+
+
+
+        Thread.sleep(10000);
+
+
+
 
 
 
