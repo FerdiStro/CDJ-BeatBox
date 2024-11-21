@@ -20,11 +20,14 @@ import org.main.midi.MidiController;
 import org.main.settings.Settings;
 import org.main.util.Coordinates;
 import org.main.util.Logger;
-import org.main.util.MidiByteMapper;
+import org.main.util.midi.MidiByteMapper;
 import org.main.util.graphics.StringTruncationUtil;
+import org.main.util.graphics.components.audio.Amplitude;
 import org.main.util.graphics.components.button.Button;
+import testSampler.Audio.AudioPlayer;
 
 import javax.sound.midi.*;
+import javax.sound.sampled.AudioInputStream;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
@@ -140,8 +143,68 @@ public class BeatBoxWindow extends JFrame {
     private boolean setupString = true;
 
 
+    public final static String AUDIO_1 = "/home/ferdinands/Projects/Private/CDJ-BeatBox/src/main/resources/Sounds/Sound/kick/KICK_04.wav";
+    public final static String AUDIO_3 = "/home/ferdinands/Projects/Private/CDJ-BeatBox/src/main/resources/Sounds/Sound/vox/Vocal_04_Revolution_140bpm.wav";
+    public final static String AUDIO_2 = "/home/ferdinands/Projects/Private/CDJ-BeatBox/src/main/resources/Sounds/Sound/vox/Vocal_02_Feel The Madness.wav";
+    private  Amplitude amplitude;
+
+
+
     private BeatBoxWindow() {
         setLayout(null);
+
+
+
+        /*
+            New sound System tests
+         */
+
+
+
+        AudioInputStream audioInputStream_1 = AudioPlayer.getAudioInputStream(new File(AUDIO_1));
+        AudioInputStream audioInputStream_2 = AudioPlayer.getAudioInputStream(new File(AUDIO_2));
+
+        AudioInputStream audioInputStream_3 = AudioPlayer.getAudioInputStream(new File(AUDIO_3));
+
+
+
+        AudioPlayer audioPlayer = AudioPlayer.getInstance();
+
+
+
+        audioPlayer.addAudio(audioInputStream_1, 1.0);
+        audioPlayer.addAudio(audioInputStream_1, 1.5);
+        audioPlayer.addAudio(audioInputStream_1, 2.0);
+
+
+
+
+
+
+
+
+
+//        AudioInputStream combine = audioPlayer.combine(fullBeatStream, audioInputStream_1);
+
+
+        amplitude = new Amplitude(new Coordinates(0, 0), new Dimension(0, 0), audioPlayer.getFullBeatAudioStream());
+        audioPlayer.addUpdateAudioStreamObserver(amplitude);
+
+
+
+
+//        audioPlayer.play(audioInputStream_2);
+
+
+
+
+
+
+
+
+        /*
+            test.....
+         */
 
 
         playerGridButton.setStateButton("-ON", "-OFF");
@@ -169,8 +232,10 @@ public class BeatBoxWindow extends JFrame {
 
         PatternManager patternManager = PatternManager.getInstance();
 
-        jLabel = new JLabel() {
 
+
+        jLabel = new JLabel() {
+            boolean active =  false;
             boolean resizeFirst = true;
 
             protected void paintComponent(Graphics g) {
@@ -189,6 +254,27 @@ public class BeatBoxWindow extends JFrame {
 
 
                 soundLibrary.updateVis();
+
+
+
+                /*
+                    todo: update SoundSytem
+                 */
+                if(playerGridCounterBeat == 6 && !active){
+                    audioPlayer.addAudio(audioInputStream_1, 0.0);
+                    audioPlayer.addAudio(audioInputStream_1, 0.5);
+                    active = true;
+                }
+
+                amplitude.draw(g2d);
+                if(playerGridCounterBeat == 1){
+//                    audioPlayer.play();
+                }
+
+
+
+
+
 
 
                 //beat
@@ -500,6 +586,10 @@ public class BeatBoxWindow extends JFrame {
                 g2d.fillRect(libraryX, libraryY, libraryWidth, libraryHeight);
 
 
+
+
+
+
             }
         };
 
@@ -613,6 +703,8 @@ public class BeatBoxWindow extends JFrame {
                         kordSlotRemoveList.put(kordName, coordinates);
                     }
                 }
+
+
 
             }
         });
@@ -812,6 +904,14 @@ public class BeatBoxWindow extends JFrame {
         playGridY = (int) (dimension.height * 0.5);
         metaDataHeight = controlPanelHeight;
         metaDataWidth = controlPanelWith;
+
+
+
+        /*
+            New Player style
+         */
+        amplitude.setRepositionAndSize(playGridX, 200, 800 , 100);
+
 
         /*
             Toggle-switch

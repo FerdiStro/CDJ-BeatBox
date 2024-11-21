@@ -1,4 +1,4 @@
-package org.main.util;
+package org.main.util.midi;
 
 public class MidiByteMapper {
 

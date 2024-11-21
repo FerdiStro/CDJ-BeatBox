@@ -1,10 +1,9 @@
 package testSampler.Audio;
 
 import java.io.ByteArrayInputStream;
-import java.util.Arrays;
 
-import static testSampler.Util.getCombined;
-import static testSampler.Util.getFrames;
+import static org.main.util.audio.AudioUtils.getCombined;
+import static org.main.util.audio.AudioUtils.getFrames;
 
 
 public class MutableByteArrayInputStream extends ByteArrayInputStream {
