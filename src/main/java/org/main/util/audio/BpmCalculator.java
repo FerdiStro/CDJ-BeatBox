@@ -1,8 +1,5 @@
-package org.main.util;
+package org.main.util.audio;
 
-
-import be.tarsos.dsp.AudioDispatcher;
-import be.tarsos.dsp.io.jvm.AudioDispatcherFactory;
 
 public class BpmCalculator {
 
