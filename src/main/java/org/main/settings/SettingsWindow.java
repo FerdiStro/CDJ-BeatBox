@@ -37,8 +37,6 @@ public class SettingsWindow extends JFrame {
         MIDI-MK2
      */
 
-
-
     private final Button midiButton = new Button(new Coordinates(20, 20), new Dimension(buttonWidth, buttonHeight), "Midi");
     private final Button midiDisableButton =  new Button(new Coordinates(midiButton.getX(), getY() + buttonHeight * 3), new Font("Arial", Font.PLAIN, 16),"Disable");
 
@@ -102,13 +100,7 @@ public class SettingsWindow extends JFrame {
 
         CustomDropdown dropdown = new CustomDropdown(MidiController.getInstance(null).getMidiTransmittersNamesList(), new Coordinates(midiButton.getX(), 100), new Dimension(100,30 ) );
 
-        dropdown.addClickListener(new AbstractComponent.ComponentClickListener() {
-            @Override
-            public void onOptionClicked(String  transmitterName) {
-                Settings.getInstance().setMidiTransmitterName(transmitterName);
-                MidiController.getInstance(null).setTransmitter();
-            }
-        });
+
 
 
 
@@ -153,6 +145,14 @@ public class SettingsWindow extends JFrame {
         };
 
 
+        dropdown.addClickListener(new AbstractComponent.ComponentClickListener() {
+            @Override
+            public void onOptionClicked(String  transmitterName) {
+                Settings.getInstance().setMidiTransmitterName(transmitterName);
+                MidiController.getInstance(null).setTransmitter();
+            }
+        });
+
 
         label.addMouseListener(new MouseAdapter() {
             @Override
@@ -166,6 +166,9 @@ public class SettingsWindow extends JFrame {
                     Settings.getInstance().getMidiControllerSettings().setMidiControllerDisable(midiDisableButton.isToggle());
                     repaint();
                 });
+
+
+                dropdown.clickEvent(e);
 
 
             }
