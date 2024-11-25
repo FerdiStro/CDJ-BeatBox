@@ -1,15 +1,18 @@
-package testSampler.Audio;
+package org.main.audio.audioplayer;
 
 import lombok.Getter;
+import org.main.audio.playegrid.Slot;
+import org.main.audio.playegrid.SlotAudio;
 import org.main.util.Logger;
 import org.main.util.audio.AudioUtils;
-import org.main.util.audio.UpdateAudioStream;
 
 import javax.sound.sampled.*;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 
 public class AudioPlayer {
@@ -71,6 +74,48 @@ public class AudioPlayer {
         this.playAudioInputStream(fullBeatAudioStream);
     }
 
+
+
+
+    private Map<SlotAudio, Integer> slotAudioInStream = new HashMap<>();
+
+    public void removeAudio(SlotAudio slotAudio){
+       slotAudioInStream.remove(slotAudio);
+       if(slotAudioInStream.isEmpty()){
+           this.updateAllObserver(null);
+
+       }else{
+           this.renderSlotAudioInStreamNew();
+       }
+    }
+
+
+    public void resetInputStream(){
+        setFullBetAudioStream(sampleRate, beatGrid, bpm);
+    }
+
+    private void renderSlotAudioInStreamNew(){
+        resetInputStream();
+        for(SlotAudio slotAudio : slotAudioInStream.keySet()){
+            Integer pos = slotAudioInStream.get(slotAudio);
+            addAudio(slotAudio, pos);
+        }
+    }
+
+
+    public void addAudio(SlotAudio slotAudio, int posInBeat){
+        try {
+            slotAudioInStream.put(slotAudio,  posInBeat);
+            AudioInputStream audioStream = AudioSystem.getAudioInputStream(slotAudio.getAudioFile());
+            audioStream.mark(Integer.MAX_VALUE);
+            addAudio(audioStream, (double) posInBeat / 2);
+
+        } catch (UnsupportedAudioFileException e) {
+            throw new RuntimeException(e);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     public void addAudio(AudioInputStream audioInputStream, double  posInSec){
 

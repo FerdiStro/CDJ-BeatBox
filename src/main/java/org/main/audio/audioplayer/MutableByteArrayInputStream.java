@@ -1,4 +1,4 @@
-package testSampler.Audio;
+package org.main.audio.audioplayer;
 
 import java.io.ByteArrayInputStream;
 

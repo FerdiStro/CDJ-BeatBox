@@ -1,6 +1,6 @@
 package org.main.util.audio;
 
-import testSampler.Audio.AudioFrame;
+import org.main.audio.audioplayer.AudioFrame;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;

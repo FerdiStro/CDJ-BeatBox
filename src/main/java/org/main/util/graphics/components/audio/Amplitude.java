@@ -2,10 +2,10 @@ package org.main.util.graphics.components.audio;
 
 import org.main.util.audio.AudioUtils;
 import org.main.util.Coordinates;
-import org.main.util.audio.UpdateAudioStream;
+import org.main.audio.audioplayer.UpdateAudioStream;
 import org.main.util.graphics.components.AbstractComponent;
-import testSampler.Audio.AudioFrame;
-import testSampler.Audio.AudioPlayer;
+import org.main.audio.audioplayer.AudioFrame;
+import org.main.audio.audioplayer.AudioPlayer;
 
 import javax.sound.sampled.AudioInputStream;
 import java.awt.*;
@@ -69,14 +69,14 @@ public class Amplitude extends AbstractComponent implements UpdateAudioStream {
         double width = getDimension().getWidth();
 
 
-        double max = Math.min(framesAmplitude.length, AudioPlayer.getInstance().getSampleRate() * 4);
+        double max = Math.min(framesAmplitude.length , AudioPlayer.getInstance().getSampleRate() * 4);
 
 
         g.drawRect(x, y , (int) width, (int) height);
 
 
 
-        for (int i = 0; i < max- 1; i++) {
+        for (int i = 0; i < max - 1; i++) {
             int x1 = (int) ((i / (double) max) * width) + x;
             int x2 = (int) (((i + 1) / (double)max) * width) + x;
 
