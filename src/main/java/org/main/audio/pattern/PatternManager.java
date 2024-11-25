@@ -36,6 +36,7 @@ public class PatternManager {
 
     private Map<String, PlayPattern> slotCache = new HashMap<>();
 
+
     public void loadPattern(PlayerGrid grid,  String name){
         PlayPattern cachedPattern = slotCache
                 .computeIfAbsent(name, this::findPatternByName);

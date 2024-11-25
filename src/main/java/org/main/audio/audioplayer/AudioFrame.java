@@ -1,9 +1,8 @@
-package testSampler.Audio;
+package org.main.audio.audioplayer;
 
 import lombok.Getter;
 import lombok.Setter;
 
-import java.awt.*;
 import java.util.Arrays;
 
 @Getter

@@ -1,4 +1,4 @@
-package org.main.util.audio;
+package org.main.audio.audioplayer;
 
 import javax.sound.sampled.AudioInputStream;
 
