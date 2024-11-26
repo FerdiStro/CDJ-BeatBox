@@ -1,6 +1,7 @@
 package org.main.audio.library;
 
 import lombok.Getter;
+import org.main.BeatBoxWindow;
 import org.main.audio.metadata.MetaDataFinder;
 import org.main.audio.metadata.SlotAudioMetaData;
 import org.main.audio.playegrid.SlotAudio;
@@ -67,6 +68,18 @@ public class LoadLibrary {
     }
 
 
+    public void setSelectedSoundByName(String name){
+        File audioFile = null;
+        for (LibraryKind libraryKind : getFolderView()) {
+            audioFile = getFileOutOfLib(libraryKind, name);
+            if(audioFile != null){
+                libraryKind.setSelectedTitel(name);
+                return;
+            }
+        }
+        Logger.error("No sound can be load, with name: " +  name);
+    }
+
     private LibraryKind generateTree(String path) {
         DefaultMutableTreeNode root = new DefaultMutableTreeNode("Root");
 
@@ -115,10 +128,6 @@ public class LoadLibrary {
                         todo:BPM and KEY
                      */
 
-//                    File audioFile = new File("/Users/ferdinand/IdeaProjects/CDJ-BeatBox/src/main/resources/OnShoot/seq/Mzperx_SEQ_06_Accidd_135bpm.wav");
-//                    new BpmCalculator().calculateBpm(audioFile);
-
-
 
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -160,9 +169,7 @@ public class LoadLibrary {
                         if (soundSupportet(soundName)) {
                             sound.setSelectedTitel(soundName);
                             sound.preListen();
-
-
-
+                            BeatBoxWindow.getInstance().unselectAllMetaButton();
                         }
 
 
@@ -180,18 +187,6 @@ public class LoadLibrary {
         return sound;
     }
 
-    double firstOnset = -1;
-    double lastOnset = -1;
-    int onsetCount = 0;
-
-    private double calculateBPM(double onsetCount, double lastOnset, double firstOnset) {
-        if (onsetCount > 1) {
-            double totalTime = lastOnset - firstOnset;
-            double avgOnsetTime = totalTime / (onsetCount - 1);
-            return 60 / avgOnsetTime;  // Umrechnung in BPM
-        }
-        return 0;
-    }
 
     public SlotAudio loadSoundInCache(SlotAudio slotAudio){
         SlotAudio cachedslotAudio = audioCache.get(slotAudio.getName());

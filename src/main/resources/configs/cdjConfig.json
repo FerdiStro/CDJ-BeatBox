@@ -1,5 +1,5 @@
 {
-  "useCdj": false,
+  "useCdj": true,
   "useCdjInit": false,
   "maxAttempts": 10,
   "maxAttemptsInit": 10,
