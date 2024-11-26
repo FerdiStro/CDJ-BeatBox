@@ -1,7 +1,9 @@
 package org.main;
 
+import org.apache.commons.math3.util.Precision;
 import org.deepsymmetry.beatlink.*;
 import org.deepsymmetry.beatlink.data.*;
+import org.deepsymmetry.electro.Metronome;
 import org.main.audio.playegrid.ExtendedTrackMetaData;
 import org.main.settings.objects.CDJSettings;
 import org.main.settings.Settings;
@@ -10,9 +12,11 @@ import org.main.util.Logger;
 import javax.swing.*;
 
 import java.awt.*;
+import java.io.IOException;
 import java.net.SocketException;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.List;
 import java.util.Timer;
 
 import static java.lang.Thread.sleep;
@@ -79,34 +83,20 @@ public class Main {
                                 }
                             });
                             BeatFinder.getInstance().start();
+
                             VirtualCdj cdj = VirtualCdj.getInstance();
                             cdj.setDeviceNumber((byte) 4);
-                            cdj.setDeviceName("Beat-Box");
+
                             VirtualCdj.getInstance().start();
 
-                            cdj.addMasterListener(new MasterListener() {
-                                int count = 1;
-                                int bigCount = 1;
 
-                                @Override
-                                public void masterChanged(DeviceUpdate update) {
-                                    frame.setMasterDeviceId(update.getDeviceNumber());
-                                }
-
-                                @Override
-                                public void tempoChanged(double tempo) {
-                                    frame.setMasterTempo(tempo);
-                                }
-
-                                @Override
-                                public void newBeat(Beat beat) {
-                                    String currentTime = sdf.format(new Date());
-                                    frame.setCounterBeat(count);
-                                    count = (count % 4) + 1;
-                                    frame.setPlayerGridCounterBeat(bigCount);
-                                    bigCount = (bigCount % 8) + 1;
-                                }
-                            });
+                            cdj.setSynced(true);
+                            cdj.setPlaying(true);
+                            try {
+                                cdj.setSendingStatus(true);
+                            } catch (IOException e) {
+                                throw new RuntimeException(e);
+                            }
 
                             try {
                                 MetadataFinder.getInstance().start();
@@ -116,6 +106,63 @@ public class Main {
                             } catch (Exception e) {
                                 throw new IllegalStateException();
                             }
+
+                            BeatFinder beatFinder = BeatFinder.getInstance();
+                            beatFinder.addBeatListener(new BeatListener() {
+                                double lastMasterTempo = 0.0;
+
+                                int count = 1;
+                                int bigCount = 1;
+
+
+
+                                List<Integer> beatList = new ArrayList<>();
+                                boolean setup  = false;
+                                int iCount = 0;
+
+                                @Override
+                                public void newBeat(Beat beat) {
+                                    if(beatList.contains(beat.getDeviceNumber())){
+                                        setup = true;
+                                    }else {
+                                        beatList.add(beat.getDeviceNumber());
+                                    }
+
+                                    if(beat.isTempoMaster()){
+                                        try {
+                                            frame.setMasterDeviceId(beat.getDeviceNumber());
+                                        }catch (Exception e){
+                                            Logger.error("");
+                                        }
+                                    }
+
+                                    if( setup &&  iCount % beatList.size() == 0  ){
+                                        double newBpm  = Precision.round(beat.getEffectiveTempo(), 1);
+
+
+
+                                        if(lastMasterTempo != newBpm){
+                                            frame.setMasterTempo(newBpm);
+                                        }
+
+
+                                        String currentTime = sdf.format(new Date());
+
+                                        frame.setCounterBeat(count);
+                                        count = (count % 4) + 1;
+                                        frame.setPlayerGridCounterBeat(bigCount);
+                                        bigCount = (bigCount % 8) + 1;
+
+
+                                        lastMasterTempo = newBpm;
+
+                                    }
+
+                                    iCount ++;
+
+
+                                }
+                            });
 
                             new Timer().scheduleAtFixedRate(new TimerTask() {
                                 @Override
@@ -174,7 +221,7 @@ public class Main {
 
 
                             frame.setSetupString(false);
-
+                            frame.setUseWithoutCdj(true);
                             frame.setCounterBeat(count);
                             count = (count % 4) + 1;
                             frame.setPlayerGridCounterBeat(bigCount);

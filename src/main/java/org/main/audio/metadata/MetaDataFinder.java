@@ -38,15 +38,23 @@ public class MetaDataFinder {
         }
     }
 
+
     public SlotAudioMetaData getMetaData(String audioName) {
-        return this.metaDataList.get(audioName);
+        SlotAudioMetaData returnMetaData = this.metaDataList.get(audioName);
+        if( null != returnMetaData) return  returnMetaData;
+
+        for(String metaDataName : metaDataList.keySet()){
+            SlotAudioMetaData slotAudioMetaData =  metaDataList.get(metaDataName);
+            if (slotAudioMetaData.getShortName().equals(audioName)) return  slotAudioMetaData;
+            if (metaDataName.equals(audioName))return  slotAudioMetaData;
+        }
+        return null;
     }
 
     /*
         Recommendations
      */
     private Map<String, List<String>> recommendationsList = new HashMap<>();
-
 
 
     public List<String> findRecommendations(String songName){

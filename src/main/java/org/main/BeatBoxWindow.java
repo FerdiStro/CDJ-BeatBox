@@ -3,6 +3,7 @@ package org.main;
 import com.google.type.DateTime;
 import lombok.Getter;
 import lombok.Setter;
+import org.deepsymmetry.beatlink.VirtualCdj;
 import org.deepsymmetry.beatlink.data.*;
 
 
@@ -12,6 +13,7 @@ import org.main.audio.PlayerGrid;
 import org.main.audio.library.TYPE;
 import org.main.audio.metadata.MetaDataFinder;
 import org.main.audio.metadata.SlotAudioMetaData;
+import org.main.audio.pattern.METADATA_TYPE;
 import org.main.audio.pattern.PatternManager;
 import org.main.audio.pattern.PlayPattern;
 import org.main.audio.playegrid.ExtendedTrackMetaData;
@@ -33,6 +35,8 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
+import java.io.IOException;
+import java.net.NetworkInterface;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.time.Clock;
@@ -61,11 +65,15 @@ public class BeatBoxWindow extends JFrame {
     private int counterBeat = 0;
     private int sizeBeat;
 
+
     private int masterX;
     private int masterY;
 
     @Getter
     private double masterTempo = 0.0;
+    @Setter
+    private boolean useWithoutCdj  = false;
+
 
     private int setUpStringX;
 
@@ -104,14 +112,19 @@ public class BeatBoxWindow extends JFrame {
     private final Button volumeSliderButton = new Button(new Coordinates(0, 0), new Dimension(200, 10), "togglePlayerGrid");
     private final Button clearSlotsButton = new Button(new Coordinates(0, 0), new Dimension(100, 100), "clear");
 
+    private final Button patternSaveButton = new Button(new Coordinates(100, 100), new Dimension(100, 100), "save");
+    private final Button patternLoadButton = new Button(new Coordinates(100, 200), new Dimension(100, 100), "loadPattern");
 
-    private Button patternSaveButton = new Button(new Coordinates(100, 100), new Dimension(100, 100), "save");
-    private Button patternLoadButton = new Button(new Coordinates(100, 200), new Dimension(100, 100), "loadPattern");
+    private final Button settingsButton = new Button(new Coordinates(0, 0), new Dimension(100, 100), new File("src/main/resources/Image/settings_button.png"));
+    private final Button ampliduteMetaButton = new Button(new Coordinates(0, 0), new Dimension(100, 100), new File("src/main/resources/Image/button_amplitude.png"));
+
+    private final Button bpmPlusButton =  new Button(new Coordinates( 0, 0 ), new Dimension(0, 0), new File("src/main/resources/Image/button_plus_icon.png"));
+    private final Button bpmMinusButton =  new Button(new Coordinates(0, 0), new Dimension(0,0), new File("src/main/resources/Image/button_minus_icon.png"));
 
 
-    private Button settingsButton = new Button(new Coordinates(0, 0), new Dimension(100, 100), new File("src/main/resources/Image/settings_button.png"));
 
-    private Button ampliduteMetaButton = new Button(new Coordinates(0, 0), new Dimension(100, 100), new File("src/main/resources/Image/button_amplitude.png"));
+    private final File pattern_icon = new File("src/main/resources/Image/button_pattern_icon.png");
+    private final File sound_icon = new File("src/main/resources/Image/button_sound_icon.png");
 
 
     private final HashMap<String, Coordinates> kordSlotList = new HashMap<>();
@@ -213,6 +226,11 @@ public class BeatBoxWindow extends JFrame {
             protected void paintComponent(Graphics g) {
                 super.paintComponent(g);
 
+                VirtualCdj cdj = null;
+                if(!useWithoutCdj && !setupString){
+                    cdj = VirtualCdj.getInstance();
+                }
+
 
                 Font font = new Font("Arial", Font.PLAIN, fontSize);
                 if (resizeFirst) {
@@ -232,11 +250,8 @@ public class BeatBoxWindow extends JFrame {
 
 
                 /*
-
-                    Amplitude
-                    todo: update SoundSytem
+                    Amplitude  or Meta-data
                  */
-
                 if (ampliduteMetaButton.isToggle()) {
                     amplitude.draw(g2d);
                 } else {
@@ -245,8 +260,8 @@ public class BeatBoxWindow extends JFrame {
                         Meta-data
                      */
                     if (metaData != null) {
-                        for (Integer playerNumber : metaData.keySet()) {
 
+                        for (Integer playerNumber : metaData.keySet()) {
                             ExtendedTrackMetaData trackMetadata = metaData.get(playerNumber);
                             int x = metaDataX * playerNumber + (metaDataWidth * playerNumber - metaDataWidth);
 
@@ -261,29 +276,21 @@ public class BeatBoxWindow extends JFrame {
                                 /*
                                     Recommendations
                                  */
+
+                                List<Button> buttons = metaButtonList.get(playerNumber);
                                 List<String> recommendations = metadataFinder.findRecommendations(trackMetadata.getTitle());
 
-                                if (recommendations != null) {
-
-                                    for (int i = 0; i != recommendations.size(); i++) {
-                                        SlotAudioMetaData slotAudio = metadataFinder.getMetaData(recommendations.get(i));
-
-                                        g2d.drawString(slotAudio.getShortName(), x + (int) (slotAudio.getShortName().length() * getWidth() * (i + 1) * 0.01), (int) (metaDataY + getHeight() * 0.25 + fontSize));
+                                if (buttons != null && recommendations != null) {
+                                    for (int i = 0; i != buttons.size(); i++) {
+                                        Button button = buttons.get(i);
+                                        button.draw(g2d);
+                                        button.setRepositionAndSize(metaDataX + metaDataX + (int) (metaDataHeight / 8 * (i + 1)), (int) (metaDataY + getHeight() * 0.25 + fontSize), metaDataHeight / 8, fontSize);
                                     }
-
-//                                if(trackMetadata.getButton() == null){
-//                                    trackMetadata.setButton(new Button(new Koordinate(x, (int) (metaDataY + getHeight() * 0.25 + fontSize)), new Dimension(settingsSize, settingsSize)));
-//                                }
-//                                trackMetadata.getButton().draw(g2d);
                                 }
 
-
-
-
-
-                            /*
-                               Other meta-data
-                             */
+                                /*
+                                   Other meta-data
+                                 */
                                 StringTruncationUtil.drawStringWithMaxWidth(g2d, trackMetadata.getTitle(), (int) (x + getX() * 0.02), (int) (metaDataY + getY() * 0.2 + fontSize), metaDataWidth - fontSize * 3);
 
                                 BeatBoxWindow.this.setBackground(g2d, masterDeviceId, playerNumber);
@@ -317,8 +324,9 @@ public class BeatBoxWindow extends JFrame {
                     } else {
                         g2d.setColor(Color.BLACK);
                         g2d.drawString("No metadata found!", metaDataX, metaDataY);
-                        if (initLabel) {
+                        if (initLabel && !setupString) {
                             ampliduteMetaButton.toggle();
+                            initLabel = false;
                         }
                     }
 
@@ -348,6 +356,21 @@ public class BeatBoxWindow extends JFrame {
                 */
                 g2d.setColor(Color.BLACK);
                 g2d.drawString(String.format("%.2f", masterTempo), masterX, masterY);
+                bpmPlusButton.draw(g2d);
+                bpmMinusButton.draw(g2d);
+
+                if(cdj != null){
+                    boolean tempoMaster = cdj.isTempoMaster();
+                    if(tempoMaster){
+                        g2d.setColor(Color.ORANGE);
+                    }else{
+                        g2d.setColor(Color.black);
+                    }
+                    g2d.fillRect(masterX, masterY + 50 , 100, 100);
+                    g2d.setColor(Color.WHITE);
+                    g2d.drawString("Master",masterX, masterY +  60);
+                }
+
 
                 /*
                     Set-up Text
@@ -572,7 +595,7 @@ public class BeatBoxWindow extends JFrame {
                 g2d.fillRect(libraryX, libraryY, libraryWidth, libraryHeight);
 
 
-                initLabel = false;
+
             }
         };
 
@@ -594,6 +617,72 @@ public class BeatBoxWindow extends JFrame {
                 int mouseX = e.getX();
                 int mouseY = e.getY();
 
+                /*
+                    Recommendations
+                 */
+                for (Integer i : metaButtonList.keySet()) {
+                    List<Button> buttons = metaButtonList.get(i);
+
+                    for (Button button : buttons) {
+                        button.clickMouse(e, () -> {
+                            boolean buttonState = button.isToggle();
+                            unselectAllMetaButton();
+                            button.setToggle(!buttonState);
+
+                            if (button.isToggle()) {
+                                SlotAudioMetaData slotAudioMetaData = metadataFinder.getMetaData(button.getName());
+                                if (slotAudioMetaData.getType().equals(METADATA_TYPE.SOUND)) {
+                                    soundLibrary.getSelectedSound().stopRreListen();
+                                    soundLibrary.setSelectedSoundByName(slotAudioMetaData.getLongName());
+                                }
+                                if (slotAudioMetaData.getType().equals(METADATA_TYPE.PATTERN)) {
+                                    patternManager.loadPattern(playerGrid, slotAudioMetaData.getLongName());
+                                    amplitude.setWaveFormBufferChangeRender(true);
+                                    audioPlayer.loadPattern(playerGrid);
+                                }
+                            }
+
+                        });
+                    }
+                }
+
+                /*
+                    Bpm-buttons
+                 */
+
+
+
+                bpmMinusButton.clickMouse(e, () -> {
+                    if(!useWithoutCdj && !setupString){
+                        VirtualCdj virtualCdj = VirtualCdj.getInstance();
+                        try {
+                            if(!virtualCdj.isTempoMaster()){
+                                virtualCdj.becomeTempoMaster();
+                            }
+                            virtualCdj.setTempo(masterTempo  - 10);
+                        } catch (IOException ex) {
+                            throw new RuntimeException(ex);
+                        }
+                        repaint();
+                    }
+
+
+                });
+
+                bpmPlusButton.clickMouse(e, () -> {
+                    if(!useWithoutCdj && !setupString){
+                        VirtualCdj virtualCdj = VirtualCdj.getInstance();
+                        try {
+                            if(!virtualCdj.isTempoMaster()){
+                                virtualCdj.becomeTempoMaster();
+                            }
+                            virtualCdj.setTempo(masterTempo  + 10);
+                        } catch (IOException ex) {
+                            throw new RuntimeException(ex);
+                        }
+                        repaint();
+                    }
+                });
 
 
 
@@ -721,6 +810,22 @@ public class BeatBoxWindow extends JFrame {
                 settingsButton.hoverMouse(e, new Color(182, 182, 182), () -> repaint());
                 ampliduteMetaButton.hoverMouse(e, Color.ORANGE, () -> repaint());
 
+                bpmMinusButton.hoverMouse(e, Color.ORANGE, () ->  repaint());
+                bpmPlusButton.hoverMouse(e, Color.ORANGE, () -> repaint());
+
+
+                /*
+                    Recommendations
+                */
+                for (Integer i : metaButtonList.keySet()) {
+                    List<Button> buttons = metaButtonList.get(i);
+                    for (Button button : buttons) {
+                        button.hoverMouse(e, Color.ORANGE, () -> repaint());
+                    }
+
+                }
+
+
 
 
                 /*
@@ -819,7 +924,22 @@ public class BeatBoxWindow extends JFrame {
         setVisible(true);
     }
 
+    /*
+        Recommendation Utils
+    */
+    public void unselectAllMetaButton() {
+        for (Integer i : metaButtonList.keySet()) {
+            List<Button> buttons = metaButtonList.get(i);
+            for (Button button : buttons) {
+                button.setToggle(false);
+            }
+        }
+    }
 
+
+    /*
+        BeatBox-Window Utils
+     */
     private void setBackground(Graphics2D g2d, int original, int equal) {
         if (original == equal) {
             g2d.setColor(Color.BLACK);
@@ -867,8 +987,13 @@ public class BeatBoxWindow extends JFrame {
         /*
             Master-Tempo (bpm)
          */
-        masterX = (int) Math.max(xBeat + sizeBeat * 3 + sizeBeat / 2 * 4 + sizeBeat, dimension.width * 0.088);
+        masterX = (int) Math.max(xBeat + sizeBeat * 3 + (double) sizeBeat / 2 * 4 + sizeBeat, dimension.width * 0.088);
         masterY = (int) (dimension.height * 0.02 + sizeBeat);
+        bpmMinusButton.setRepositionAndSize((int) (masterX + Math.max(screenHeight * 0.20, screenWidth * 0.05)), masterY  - sizeBeat * 2, sizeBeat * 4, sizeBeat * 4);
+        bpmPlusButton.setRepositionAndSize((int) (masterX  + Math.max(screenHeight * 0.20, screenWidth * 0.05) + sizeBeat + sizeBeat * 4), masterY  - sizeBeat * 2 , sizeBeat * 4, sizeBeat * 4);
+
+
+
 
         /*
            Set-up Text
@@ -959,12 +1084,53 @@ public class BeatBoxWindow extends JFrame {
         Settings.getInstance().toggleVisible();
     }
 
+    Map<Integer, List<Button>> metaButtonList = new HashMap<>();
+    Map<Integer, TrackMetadata> lastUpdate = null;
+
+
     public void setMetaData(Map<Integer, TrackMetadata> trackMetadata) {
-        HashMap<Integer, ExtendedTrackMetaData> mappedMetaData = new HashMap<>();
-        for (Integer key : trackMetadata.keySet()) {
-            mappedMetaData.put(key, new ExtendedTrackMetaData(trackMetadata.get(key)));
+        if (trackMetadata != lastUpdate || metaButtonList.isEmpty()) {
+            HashMap<Integer, ExtendedTrackMetaData> mappedMetaData = new HashMap<>();
+
+            for (Integer key : trackMetadata.keySet()) {
+
+                mappedMetaData.put(key, new ExtendedTrackMetaData(trackMetadata.get(key)));
+                TrackMetadata metadata = trackMetadata.get(key);
+
+                if (metadata != null) {
+                    List<String> recommendations = metadataFinder.findRecommendations(metadata.getTitle());
+                    List<Button> recommendationsList = new ArrayList<>();
+
+                    if (recommendations != null) {
+                        for (String recommendation : recommendations) {
+                            SlotAudioMetaData slotAudioMetaData = metadataFinder.getMetaData(recommendation);
+                            Button button = new Button(new Coordinates(0, 0), new Dimension(0, 0), slotAudioMetaData.getShortName());
+
+                            if (slotAudioMetaData.getType().equals(METADATA_TYPE.PATTERN)) {
+                                button.setStateButton(false);
+                                button.setBackgroundColor(new Color(255, 77, 77));
+
+                            }
+                            if (slotAudioMetaData.getType().equals(METADATA_TYPE.SOUND)) {
+                                button.setToggleColorFullButton(true);
+                                button.setToggle(true);
+                                button.setBackgroundColor(new Color(173, 132, 226));
+
+                            }
+
+                            recommendationsList.add(button);
+                        }
+
+                    }
+                    metaButtonList.put(key, recommendationsList);
+                    unselectAllMetaButton();
+                }
+
+            }
+            this.metaData = mappedMetaData;
         }
-        this.metaData = mappedMetaData;
+
+        this.lastUpdate = trackMetadata;
     }
 
 }
