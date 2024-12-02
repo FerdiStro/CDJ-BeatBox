@@ -256,11 +256,7 @@ public class Button extends AbstractComponent {
 
         }
 
-        if(Logger.debugGraphics){
-            g2d.setColor(Color.BLACK);
-            g2d.drawLine(getX() + getDimension().width /2, getY(), getX()  + getDimension().width /2, getY() +  getDimension().height);
-            g2d.drawLine(getX(), getY() +  getDimension().height /2 , getX() +  getDimension().width, getY() + getDimension().height / 2);
-        }
+        Logger.drawMiddle(g2d, this, Color.black);
 
 
         g2d.setColor(colorBefore);

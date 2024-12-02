@@ -1,7 +1,10 @@
 package org.main.util;
 
 import lombok.Getter;
+import org.apache.commons.math3.analysis.function.Abs;
+import org.main.util.graphics.components.AbstractComponent;
 
+import java.awt.*;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -13,6 +16,17 @@ public class Logger {
     public static final Boolean debugGraphics = true;
 
 
+
+    public static void drawMiddle(Graphics2D g, AbstractComponent component, Color color){
+        if(Logger.debugGraphics){
+            Color before = g.getColor();
+            g.setColor(color);
+            g.drawLine(component.getX() + component.getDimension().width /2, component.getY(), component.getX()  + component.getDimension().width /2, component.getY() +  component.getDimension().height);
+            g.drawLine(component.getX(), component.getY() +  component.getDimension().height /2 , component.getX() +  component.getDimension().width, component.getY() + component.getDimension().height / 2);
+            g.setColor(before);
+        }
+
+    }
 
     public static void init(Class initClas){
         SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss.SSS");

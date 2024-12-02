@@ -1,13 +1,18 @@
 package testSampler;
 
 import org.main.util.Coordinates;
+import org.main.util.graphics.components.AbstractComponent;
+import org.main.util.graphics.components.Shadow;
 import org.main.util.graphics.components.button.Button;
+import org.main.util.graphics.components.menu.MultipleComponentMenuHorizontal;
 
 import javax.sound.sampled.*;
 import javax.swing.*;
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Test {
     public final static String AUDIO_1 = "/home/ferdinands/Projects/Private/CDJ-BeatBox/src/main/resources/Sounds/Sound/kick/KICK_04.wav";
@@ -33,13 +38,24 @@ public class Test {
 
         Button button = new Button(new Coordinates(10, 100), new Dimension(100, 60), "test");
         button.setFancy(true);
-
         button.setStateButton();
-//        button.setToggleColorFullButton(true);
         button.toggle();
 
 
-        Frame frame = new Frame();
+        Button button2 = new Button(new Coordinates(10, 100), new Dimension(150, 70), "test2");
+        button2.setFancy(true);
+
+
+        List<AbstractComponent> componentList =  new ArrayList<>();
+        componentList.add(button);
+        componentList.add(button2);
+
+        MultipleComponentMenuHorizontal multipleComponentMenuHorizontal = new MultipleComponentMenuHorizontal(new Coordinates( 10, 100), new Dimension(200, 100),componentList );
+        multipleComponentMenuHorizontal.setShadow(new Shadow( 4,  4, 30));
+
+
+
+        JFrame frame = new JFrame();
         JLabel jLabel = new JLabel() {
 
 
@@ -49,17 +65,22 @@ public class Test {
             @Override
             protected void paintComponent(Graphics g) {
                 super.paintComponent(g);
+                multipleComponentMenuHorizontal.draw((Graphics2D) g);
 
-                button.draw((Graphics2D) g);
+
+
 
 
             }
+
         };
 
-        frame.add(jLabel);
-        frame.setSize(200, 300);
-        frame.setVisible(true);
 
+        frame.setBackground(Color.WHITE);
+        frame.add(jLabel);
+        frame.setSize(800, 800);
+        frame.setVisible(true);
+        frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 
 
     }
