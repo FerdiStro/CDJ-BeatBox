@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.Setter;
 import org.main.util.Coordinates;
 import org.main.util.Logger;
+import org.main.util.graphics.DrawStringUtil;
 import org.main.util.graphics.components.AbstractComponent;
 
 import javax.imageio.ImageIO;
@@ -19,32 +20,65 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 //todo: change all buttons to this class
-@Getter
-@Setter
+
 public class Button extends AbstractComponent {
 
-    private boolean toggle = false;
 
+    @Getter
     private final String name;
     private final BufferedImage image;
 
-    private String state = "";
-    private String onState = "";
-    private String offState = "";
-    private boolean stateButton = false;
+    private  Font font;
 
-    private Font font;
+    /**
+     * {@code stateButton} is boolean. Can be set with {@code setStateButton()}  and {@code setStateButton(String onState, String offState)}<br>
+     * When {@code true} button is in state mode. so have on (true) and off (false) state.
+     */
+    private boolean stateButton = false;
+    /**
+     * {@code toggle} is boolean. Shows current state as boolean. Can access by {@code @Setter} and {@code @Getter}
+     */
+    @Setter
+    @Getter
+    private boolean toggle = false;
+    /**
+     * {@code state} is String. Shows current state  as String (onState/offState string)
+     */
+    private String state = "";
+
+    /**
+     * {@code onState} is String. Rename button with state when toggle is true <br>
+     *  Can be set in {@code setStateButton(String onState, String offState)}
+     */
+    private String onState = "";
+    /**
+     * {@code offState} is String. Rename button with state when toggle is false. <br>
+     * Can be set in {@code setStateButton(String onState, String offState)}
+     */
+    private String offState = "";
+
+
     private static final AffineTransform affinetransform = new AffineTransform();
     private static final FontRenderContext frc = new FontRenderContext(affinetransform, true, true);
 
 
     private boolean hoverActive = false;
+
+    @Setter
     private boolean toggleColorFullButton = false;
 
-    private Color hoverColor = Color.PINK;
+
+    @Setter
     private Color backgroundColor = Color.WHITE;
+    @Setter
     private Color stringColor = Color.BLACK;
+    @Setter
     private Color toggleColor = Color.ORANGE;
+
+    /**
+     * {@code hoverColor} is boolean. Is set on hovering int the {@code public void hoverMouse(MouseEvent e, Color hoverColor, OnEvent onHover)}-methode
+     */
+    private Color hoverColor = Color.PINK;
 
     /**
      * Creates default  button with {@code koordinate} and {@code Dimension}.  Give  name with {@code Name }-param
@@ -58,6 +92,13 @@ public class Button extends AbstractComponent {
         this.name = name;
         image = null;
     }
+
+    public Button(String name){
+        super(new Coordinates( 0, 0 ), new Dimension( 0, 0));
+        this.name = name;
+        image = null;
+    }
+
 
     /**
      * Creates button with {@code koordinate} and {@code Dimension}.  Use {@code File} mapped to {@code BufferedImage} instead of {@code Name}.
@@ -138,6 +179,9 @@ public class Button extends AbstractComponent {
         }
     }
 
+    @Setter
+    private boolean fancy = false;
+
     /*
         Draw Button
      */
@@ -146,31 +190,48 @@ public class Button extends AbstractComponent {
         Color colorBefore = g2d.getColor();
         Font fontBefore = g2d.getFont();
 
-        if (font == null) {
-            font = fontBefore;
+        Font usedFont;
+
+        if( this.font != null) {
+             usedFont = this.font;
+        }else{
+            usedFont = fontBefore;
         }
 
+
+
         g2d.setColor(backgroundColor);
-        g2d.setFont(font);
+        g2d.setFont(usedFont);
 
         if (hoverActive) {
             g2d.setColor(hoverColor);
         }
-        if (toggleColorFullButton && toggle) {
+
+        if (toggleColorFullButton && stateButton && toggle) {
             g2d.setColor(toggleColor);
         }
+
         g2d.fillRect(getX(), getY(), getDimension().width, getDimension().height);
+
+
 
 
         if (stateButton) {
             if (toggle) {
                 g2d.setColor(toggleColor);
-
                 state = onState;
-            } else {
+            }
+            if  (!toggle) {
                 g2d.setColor(backgroundColor);
                 state = offState;
             }
+        }
+
+        if(fancy){
+            Color color = g2d.getColor();
+            g2d.setColor(color.darker());
+            g2d.fillRect(getX() + getDimension().width / 8, getY() +getDimension().height / 12 , getDimension().width - (getDimension().width / 4) , getDimension().height / 8 );
+            g2d.setColor(color);
         }
 
         g2d.drawRect(getCoordinates().getX(), getCoordinates().getY(), getDimension().width, getDimension().height);
@@ -178,8 +239,16 @@ public class Button extends AbstractComponent {
         if (image == null) {
             g2d.setColor(stringColor);
             String tempName = name + state;
-            g2d.drawString(tempName, getCoordinates().getX() + 2, getCoordinates().getY() + getDimension().height / 2 + font.getSize() / 2);
+
+            if(fancy){
+                DrawStringUtil.drawStringWithMaxWidth(g2d, tempName,   getCoordinates().getX() , getCoordinates().getY() + getDimension().height /2  + usedFont.getSize()/ 2, getDimension().width, true);
+            }
+
+            if(!fancy){
+                g2d.drawString(tempName, getCoordinates().getX(), getCoordinates().getY() + getDimension().height / 2 + usedFont.getSize() / 2);
+            }
         }
+
 
 
         if (image != null) {
@@ -187,14 +256,20 @@ public class Button extends AbstractComponent {
 
         }
 
+        if(Logger.debugGraphics){
+            g2d.setColor(Color.BLACK);
+            g2d.drawLine(getX() + getDimension().width /2, getY(), getX()  + getDimension().width /2, getY() +  getDimension().height);
+            g2d.drawLine(getX(), getY() +  getDimension().height /2 , getX() +  getDimension().width, getY() + getDimension().height / 2);
+        }
+
+
         g2d.setColor(colorBefore);
         g2d.setFont(fontBefore);
     }
 
-    /*
-        Utils
+    /**
+     * Utils
      */
-
     public void setStateButton(String onState, String offState) {
         this.stateButton = true;
         this.onState = onState;

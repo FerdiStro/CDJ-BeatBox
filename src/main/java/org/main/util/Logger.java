@@ -1,11 +1,17 @@
 package org.main.util;
 
+import lombok.Getter;
+
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
 public class Logger {
 
+
     private static final Boolean debug =  true;
+
+    public static final Boolean debugGraphics = true;
+
 
 
     public static void init(Class initClas){
