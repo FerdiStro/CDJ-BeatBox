@@ -6,7 +6,9 @@ import org.main.util.Coordinates;
 import org.main.util.Logger;
 
 import java.awt.*;
+import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 
 
 @Getter
@@ -83,6 +85,14 @@ public abstract class AbstractComponent {
     public void setRepositionAndSize(int x, int y, int width, int height ){
         setCoordinates(x, y);
         setDimension(new Dimension(width, height));
+    }
+
+
+    //Todo: add mouse listener instead of ClickListener etc.
+    private MouseListener mouseListener;
+
+    public void addMouseListener(MouseListener mouseListener){
+        this.mouseListener = mouseListener;
     }
 
 

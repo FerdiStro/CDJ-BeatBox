@@ -18,6 +18,8 @@ import org.main.audio.pattern.PlayPattern;
 import org.main.audio.playegrid.ExtendedTrackMetaData;
 import org.main.audio.playegrid.Slot;
 import org.main.audio.playegrid.SlotAudio;
+import org.main.audio.plugin.PluginManager;
+import org.main.audio.plugin.model.Plugin;
 import org.main.midi.MidiController;
 import org.main.settings.Settings;
 import org.main.util.Coordinates;
@@ -46,7 +48,7 @@ public class BeatBoxWindow extends JFrame {
 
     private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
-    private Color backgroundTime = Color.white;
+    private final Color backgroundTime = Color.white;
 
 
     private int fontSize = 0;
@@ -117,12 +119,17 @@ public class BeatBoxWindow extends JFrame {
     private final Button bpmMinusButton =  new Button(new Coordinates(0, 0), new Dimension(0,0), new File("src/main/resources/Image/button_minus_icon.png"));
     private final Button masterButton =  new Button("Master");
 
+    private final Button quantize = new Button("quantize");
+
+
+
+
     private final HashMap<String, Coordinates> kordSlotList = new HashMap<>();
     private final HashMap<String, Coordinates> kordSlotMarkList = new HashMap<>();
     private final HashMap<String, Coordinates> kordSlotRemoveList = new HashMap<>();
 
 
-    private List<SlotAudio> shotList = new ArrayList<>();
+    private final List<SlotAudio> shotList = new ArrayList<>();
 
 
     @Setter
@@ -151,23 +158,25 @@ public class BeatBoxWindow extends JFrame {
     private boolean setupString = true;
 
 
-    private Amplitude amplitude;
+    private final Amplitude amplitude;
 
     private BeatBoxWindow() {
         setLayout(null);
 
 
 
-        /*
-            New sound System tests
-         */
-
         AudioPlayer audioPlayer = AudioPlayer.getInstance();
-
 
         amplitude = new Amplitude(new Coordinates(0, 0), new Dimension(0, 0), audioPlayer.getFullBeatAudioStream());
         audioPlayer.addUpdateAudioStreamObserver(amplitude);
-//        audioPlayer.play(audioInputStream_2);
+
+
+        /*
+            Remove
+         */
+        oneShotButton.setToggle(true);
+        PluginManager pluginManager = PluginManager.getInstance();
+        Map<Integer,  Plugin> plugins = new HashMap<>();
 
 
         clearSlotsButton.setFancy(true);
@@ -187,7 +196,11 @@ public class BeatBoxWindow extends JFrame {
         masterButton.setFancy(true);
         masterButton.setBackgroundColor(Color.LIGHT_GRAY);
 
-
+        quantize.setStateButton();
+        quantize.setFancy(true);
+        quantize.setBackgroundColor(new Color(49, 106, 255, 211));
+        quantize.setToggleColor(new Color(0,0,0));
+        quantize.setToggle(true);
 
         PlayerGrid playerGrid = PlayerGrid.getInstance();
 
@@ -208,8 +221,10 @@ public class BeatBoxWindow extends JFrame {
         PatternManager patternManager = PatternManager.getInstance();
 
 
+
+
         jLabel = new JLabel() {
-            boolean active = false;
+            final boolean active = false;
             boolean resizeFirst = true;
 
 
@@ -277,7 +292,7 @@ public class BeatBoxWindow extends JFrame {
                                     for (int i = 0; i != buttons.size(); i++) {
                                         Button button = buttons.get(i);
                                         button.draw(g2d);
-                                        button.setRepositionAndSize(metaDataX + metaDataX + (int) (metaDataHeight / 8 * (i + 1)), (int) (metaDataY + getHeight() * 0.25 + fontSize), metaDataHeight / 8, fontSize);
+                                        button.setRepositionAndSize(metaDataX + metaDataX + (metaDataHeight / 8 * (i + 1)), (int) (metaDataY + getHeight() * 0.25 + fontSize), metaDataHeight / 8, fontSize);
                                     }
                                 }
 
@@ -326,9 +341,9 @@ public class BeatBoxWindow extends JFrame {
 
                 }
 
-                if (playerGridCounterBeat == 1) {
-//                    audioPlayer.play();
-                }
+//                if (playerGridCounterBeat == 1) {
+////                    audioPlayer.play();
+//                }
 
 
                 //beat
@@ -425,20 +440,7 @@ public class BeatBoxWindow extends JFrame {
                     g2d.drawString("" + tempI, x, playGridY);
                     g2d.fillRect(x, playGridY + 4, playGridSize, playGridSize);
 
-                    if (oneShotButton.isToggle()) {
-                        g2d.setColor(Color.WHITE);
-                        switch (tempI) {
-                            case 1:
-                                g2d.drawString(String.valueOf(TYPE.ONE_BEST.getBeatHit()), x + fontSize, playGridY + playGridSize - fontSize);
-                                break;
-                            case 2:
-                                g2d.drawString(String.valueOf(TYPE.TWO_BEAT.getBeatHit()), x + fontSize, playGridY + playGridSize - fontSize);
-                                break;
-                            case 3:
-                                g2d.drawString(String.valueOf(TYPE.FOUR_BEAT.getBeatHit()), x + fontSize, playGridY + playGridSize - fontSize);
-                                break;
-                        }
-                    }
+
 
                     g2d.setColor(Color.BLACK);
 
@@ -518,12 +520,44 @@ public class BeatBoxWindow extends JFrame {
                             int kordY = playGridY + playGridSize + fontSize * 3;
                             g2d.drawString("PlayList: ", playGridX, kordY);
 
+                            quantize.draw(g2d);
+
                             for (int j = 0; j != shotList.size(); j++) {
                                 int kordX = playGridX + sizeBeat + (int) (getHeight() * 0.08) + fontSize * (j + 1) + fontSize * 2;
-
                                 g2d.drawString(String.valueOf(shotList.get(j).getPlayType().getBeatHit()), kordX, kordY);
+                            }
+
+                            //draw on pad
+                            g2d.setColor(Color.WHITE);
+                            switch (tempI) {
+                                case 1:
+                                    g2d.drawString(String.valueOf(TYPE.ONE_BEST.getBeatHit()), x + fontSize, playGridY + playGridSize - fontSize);
+                                    break;
+                                case 2:
+                                    g2d.drawString(String.valueOf(TYPE.TWO_BEAT.getBeatHit()), x + fontSize, playGridY + playGridSize - fontSize);
+                                    break;
+                                case 3:
+                                    g2d.drawString(String.valueOf(TYPE.FOUR_BEAT.getBeatHit()), x + fontSize, playGridY + playGridSize - fontSize);
+                                    break;
+                            }
+
+
+
+                            Plugin pluginWithPos = pluginManager.getPluginWithPos(tempI);
+
+                            if(pluginWithPos != null) {
+                                Button button = pluginWithPos.getButton();
+
+                                if(button!= null){
+                                    plugins.put(tempI, pluginWithPos);
+                                    button.setRepositionAndSize(x + fontSize, playGridY + playGridSize - fontSize, playGridSize, playGridSize);
+                                    button.draw(g2d);
+                                }
 
                             }
+
+
+
 
                         }
 
@@ -585,202 +619,14 @@ public class BeatBoxWindow extends JFrame {
             }
         };
 
-        jLabel.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseReleased(MouseEvent e) {
-                for (Slot slot : playerGrid.getSlots()) {
-                    slot.mouseReleased();
-                }
-                repaint();
-            }
 
-            @Override
-            public void mousePressed(MouseEvent e) {
-                for (Slot slot : playerGrid.getSlots()) {
-                    slot.mousePressed(e.getX(), e.getY());
-                }
+        MouseAdapter mouseAdapter = getMouseAdapter(playerGrid, patternManager, audioPlayer);
 
-                int mouseX = e.getX();
-                int mouseY = e.getY();
-
-                /*
-                    Recommendations
-                 */
-                for (Integer i : metaButtonList.keySet()) {
-                    List<Button> buttons = metaButtonList.get(i);
-
-                    for (Button button : buttons) {
-                        button.clickMouse(e, () -> {
-                            boolean buttonState = button.isToggle();
-                            unselectAllMetaButton();
-                            button.setToggle(buttonState);
-
-                            SlotAudioMetaData slotAudioMetaData = metadataFinder.getMetaData(button.getName());
-
-
-                            if (button.isToggle()) {
-                                if (slotAudioMetaData.getType().equals(METADATA_TYPE.SOUND)) {
-                                    soundLibrary.getSelectedSound().stopRreListen();
-                                    soundLibrary.setSelectedSoundByName(slotAudioMetaData.getLongName());
-                                }
-
-                            }
-
-                            if (slotAudioMetaData.getType().equals(METADATA_TYPE.PATTERN)) {
-                                patternManager.loadPattern(playerGrid, slotAudioMetaData.getLongName());
-                                amplitude.setWaveFormBufferChangeRender(true);
-                                audioPlayer.loadPattern(playerGrid);
-                            }
-
-                        });
-                    }
-                }
-
-                /*
-                    Bpm-buttons
-                 */
+        jLabel.addMouseListener(mouseAdapter);
 
 
 
-                bpmMinusButton.clickMouse(e, () -> {
-                    if(!useWithoutCdj && !setupString){
-                        VirtualCdj virtualCdj = VirtualCdj.getInstance();
-                        try {
-                            if(!virtualCdj.isTempoMaster()){
-                                virtualCdj.becomeTempoMaster();
-                            }
-                            virtualCdj.setTempo(masterTempo  - 10);
-                        } catch (IOException ex) {
-                            throw new RuntimeException(ex);
-                        }
-                        repaint();
-                    }
 
-
-                });
-
-                bpmPlusButton.clickMouse(e, () -> {
-                    if(!useWithoutCdj && !setupString){
-                        VirtualCdj virtualCdj = VirtualCdj.getInstance();
-                        try {
-                            if(!virtualCdj.isTempoMaster()){
-                                virtualCdj.becomeTempoMaster();
-                            }
-                            virtualCdj.setTempo(masterTempo  + 10);
-                        } catch (IOException ex) {
-                            throw new RuntimeException(ex);
-                        }
-                        repaint();
-                    }
-                });
-
-
-
-                /*
-                    Toggle beat-button
-                 */
-                oneShotButton.clickMouse(e, () -> repaint());
-                patternEditorButton.clickMouse(e, () -> repaint());
-                clearSlotsButton.clickMouse(e, () -> {
-                    playerGrid.clearSlots();
-                    audioPlayer.clearAudio();
-                    repaint();
-                });
-                ampliduteMetaButton.clickMouse(e, () -> repaint());
-
-
-                /*
-                    Pattern Manager
-                 */
-                if (patternEditorButton.isToggle()) {
-                    patternSaveButton.clickMouse(e, () -> {
-                        patternManager.savePattern(new PlayPattern("test", playerGrid.getSlots()));
-                        repaint();
-
-                    });
-
-                    patternLoadButton.clickMouse(e, () -> {
-                        patternManager.loadPattern(playerGrid, "test");
-                        amplitude.setWaveFormBufferChangeRender(true);
-                        audioPlayer.loadPattern(playerGrid);
-                        repaint();
-                    });
-                }
-
-
-
-                /*
-                    Beat grid
-                 */
-                for (int i = 0; i != playerGrid.getSlots().length; i++) {
-                    Slot slot = playerGrid.getSlots()[i];
-                    int tempI = i + 1;
-                    int x = playGridX * tempI + (playGridSize * tempI - playGridSize);
-
-                    Rectangle rect = new Rectangle(x + 2, playGridY, playGridSize, playGridSize);
-                    if (rect.contains(mouseX, mouseY)) {
-                        if (oneShotButton.isToggle()) {
-
-                            //todo: special amplitude render
-
-
-                            if (tempI == 1) {
-                                shotList.add(new SlotAudio(soundLibrary.getSelectedSlotAudio(), TYPE.ONE_BEST));
-
-                            }
-                            if (tempI == 2) {
-                                shotList.add(new SlotAudio(soundLibrary.getSelectedSlotAudio(), TYPE.TWO_BEAT));
-                            }
-                            if (tempI == 3) {
-                                shotList.add(new SlotAudio(soundLibrary.getSelectedSlotAudio(), TYPE.FOUR_BEAT));
-                            }
-                        } else {
-                            slot.addSelectedSound(soundLibrary.getSelectedSlotAudio());
-                            soundLibrary.getSelectedSound().stopRreListen();
-
-                            audioPlayer.addAudio(soundLibrary.getSelectedSlotAudio(), i);
-                            amplitude.setWaveFormBufferChangeRender(true);
-                        }
-                        repaint();
-                        break;
-
-                    }
-                }
-                /*
-                    Sound-library
-                 */
-                for (int i = 0; i != soundLibrary.getFolderView().size(); i++) {
-
-                    Rectangle rect = new Rectangle(libraryX + libraryButtonWidth * i, libraryY - libraryButtonHeight, libraryButtonWidth, libraryButtonHeight);
-                    if (rect.contains(mouseX, mouseY)) {
-                        soundLibrary.setSelectedLibrary(i);
-                        repaint();
-                        break;
-                    }
-                }
-                /*
-                    Settings-button
-                 */
-                settingsButton.clickMouse(e, () -> {
-                    toggleSettingWindow();
-                    repaint();
-                });
-
-                /*
-                   Sound-list
-                */
-                for (String kordName : kordSlotList.keySet()) {
-                    Coordinates coordinates = kordSlotList.get(kordName);
-                    Rectangle kordListRect = new Rectangle(coordinates.getX(), coordinates.getY(), playGridSize, fontSize * 2);
-
-                    if (kordListRect.contains(mouseX, mouseY)) {
-                        kordSlotRemoveList.put(kordName, coordinates);
-                    }
-                }
-
-
-            }
-        });
 
         jLabel.addMouseMotionListener(new MouseMotionAdapter() {
             public void mouseDragged(MouseEvent e) {
@@ -843,10 +689,8 @@ public class BeatBoxWindow extends JFrame {
 
             @Override
             public void send(MidiMessage message, long timeStamp) {
-                if (message instanceof ShortMessage && timeStamp > timeMidi) {
+                if (message instanceof ShortMessage sm && timeStamp > timeMidi) {
                     timeMidi = timeStamp + 000_000_700_000;
-
-                    ShortMessage sm = (ShortMessage) message;
 
                     Logger.info(String.valueOf(sm.getData1()));
                     int padNum = MidiByteMapper.padMapper(sm.getData1());
@@ -871,17 +715,9 @@ public class BeatBoxWindow extends JFrame {
                             }
 
                             if (oneShotButton.isToggle()) {
-                                /*
-                                    Play slot in beat
-                                 */
-                                if (sm.getData1() == 36) {
-                                    shotList.add(new SlotAudio(soundLibrary.getSelectedSlotAudio(), TYPE.ONE_BEST));
-                                }
-                                if (sm.getData1() == 37) {
-                                    shotList.add(new SlotAudio(soundLibrary.getSelectedSlotAudio(), TYPE.TWO_BEAT));
-                                }
-                                if (sm.getData1() == 38) {
-                                    shotList.add(new SlotAudio(soundLibrary.getSelectedSlotAudio(), TYPE.FOUR_BEAT));
+                                SlotAudio slotAudioWithType = SlotAudio.getWithType(soundLibrary.getSelectedSlotAudio(), sm.getData1());
+                                if(slotAudioWithType!=null){
+                                    shotList.add(slotAudioWithType);
                                 }
                             }
 
@@ -913,6 +749,7 @@ public class BeatBoxWindow extends JFrame {
         setLayout(null);
         setVisible(true);
     }
+
 
     /*
         Recommendation Utils
@@ -986,6 +823,7 @@ public class BeatBoxWindow extends JFrame {
 
 
 
+
         /*
            Set-up Text
          */
@@ -1055,6 +893,15 @@ public class BeatBoxWindow extends JFrame {
         metaDataX = settingsButton.getX() + (int) (dimension.width * 0.005);
         metaDataY = settingsButton.getY() + (int) (dimension.height * 0.1);
 
+
+        /*
+            Quantize-button
+         */
+        quantize.setRepositionAndSize(playGridX ,  playGridY + playGridSize + fontSize *4, playGridSize, (int) (playGridSize * 0.5) + fontSize) ;
+
+
+
+
         /*
             Library
          */
@@ -1095,19 +942,7 @@ public class BeatBoxWindow extends JFrame {
                     if (recommendations != null) {
                         for (String recommendation : recommendations) {
                             SlotAudioMetaData slotAudioMetaData = metadataFinder.getMetaData(recommendation);
-                            Button button = new Button( slotAudioMetaData.getShortName());
-                            button.setFancy(true);
-
-                            if (slotAudioMetaData.getType().equals(METADATA_TYPE.PATTERN)) {
-                                button.setBackgroundColor(new Color(255, 77, 77));
-
-                            }
-                            if (slotAudioMetaData.getType().equals(METADATA_TYPE.SOUND)) {
-                                button.setToggleColorFullButton(true);
-                                button.setStateButton();
-                                button.setBackgroundColor(new Color(173, 132, 226));
-
-                            }
+                            Button button = getButton(slotAudioMetaData);
 
                             recommendationsList.add(button);
                         }
@@ -1123,5 +958,240 @@ public class BeatBoxWindow extends JFrame {
 
         this.lastUpdate = trackMetadata;
     }
+
+    private  Button getButton(SlotAudioMetaData slotAudioMetaData) {
+        Button button = new Button( slotAudioMetaData.getShortName());
+        button.setFancy(true);
+
+        if (slotAudioMetaData.getType().equals(METADATA_TYPE.PATTERN)) {
+            button.setBackgroundColor(new Color(255, 77, 77));
+
+        }
+        if (slotAudioMetaData.getType().equals(METADATA_TYPE.SOUND)) {
+            button.setToggleColorFullButton(true);
+            button.setStateButton();
+            button.setBackgroundColor(new Color(173, 132, 226));
+
+        }
+        return button;
+    }
+
+
+    private MouseAdapter getMouseAdapter(PlayerGrid playerGrid, PatternManager patternManager, AudioPlayer audioPlayer) {
+        return new MouseAdapter() {
+            @Override
+            public void mouseReleased(MouseEvent e) {
+                for (Slot slot : playerGrid.getSlots()) {
+                    slot.mouseReleased();
+                }
+                repaint();
+            }
+
+            @Override
+            public void mousePressed(MouseEvent e) {
+                for (Slot slot : playerGrid.getSlots()) {
+                    slot.mousePressed(e.getX(), e.getY());
+                }
+
+                int mouseX = e.getX();
+                int mouseY = e.getY();
+
+                /*
+                    Recommendations
+                 */
+                for (Integer i : metaButtonList.keySet()) {
+                    List<Button> buttons = metaButtonList.get(i);
+
+                    for (Button button : buttons) {
+                        button.clickMouse(e, () -> {
+                            boolean buttonState = button.isToggle();
+                            unselectAllMetaButton();
+                            button.setToggle(buttonState);
+
+                            SlotAudioMetaData slotAudioMetaData = metadataFinder.getMetaData(button.getName());
+
+
+                            if (button.isToggle()) {
+                                if (slotAudioMetaData.getType().equals(METADATA_TYPE.SOUND)) {
+                                    soundLibrary.getSelectedSound().stopRreListen();
+                                    soundLibrary.setSelectedSoundByName(slotAudioMetaData.getLongName());
+                                }
+
+                            }
+
+                            if (slotAudioMetaData.getType().equals(METADATA_TYPE.PATTERN)) {
+                                patternManager.loadPattern(playerGrid, slotAudioMetaData.getLongName());
+                                amplitude.setWaveFormBufferChangeRender(true);
+                                audioPlayer.loadPattern(playerGrid);
+                            }
+
+                        });
+                    }
+                }
+
+                /*
+                    Bpm-buttons
+                 */
+
+
+                bpmMinusButton.clickMouse(e, () -> {
+                    if (!useWithoutCdj && !setupString) {
+                        VirtualCdj virtualCdj = VirtualCdj.getInstance();
+                        try {
+                            if (!virtualCdj.isTempoMaster()) {
+                                virtualCdj.becomeTempoMaster();
+                            }
+                            virtualCdj.setTempo(masterTempo - 10);
+                        } catch (IOException ex) {
+                            throw new RuntimeException(ex);
+                        }
+                        repaint();
+                    }
+
+
+                });
+
+                bpmPlusButton.clickMouse(e, () -> {
+                    if (!useWithoutCdj && !setupString) {
+                        VirtualCdj virtualCdj = VirtualCdj.getInstance();
+                        try {
+                            if (!virtualCdj.isTempoMaster()) {
+                                virtualCdj.becomeTempoMaster();
+                            }
+                            virtualCdj.setTempo(masterTempo + 10);
+                        } catch (IOException ex) {
+                            throw new RuntimeException(ex);
+                        }
+                        repaint();
+                    }
+                });
+
+
+
+                /*
+                    Toggle beat-button
+                 */
+                oneShotButton.clickMouse(e, () -> repaint());
+
+                patternEditorButton.clickMouse(e, () -> repaint());
+
+                clearSlotsButton.clickMouse(e, () -> {
+                    playerGrid.clearSlots();
+                    audioPlayer.clearAudio();
+                    repaint();
+                });
+
+                ampliduteMetaButton.clickMouse(e, () -> repaint());
+
+
+                /*
+                    Pattern Manager
+                 */
+                if (patternEditorButton.isToggle()) {
+                    patternSaveButton.clickMouse(e, () -> {
+                        patternManager.savePattern(new PlayPattern("test", playerGrid.getSlots()));
+                        repaint();
+
+                    });
+
+                    patternLoadButton.clickMouse(e, () -> {
+                        patternManager.loadPattern(playerGrid, "test");
+                        amplitude.setWaveFormBufferChangeRender(true);
+                        audioPlayer.loadPattern(playerGrid);
+                        repaint();
+                    });
+                }
+
+                /*
+                    Quantize button
+                 */
+                quantize.clickMouse(e, () -> {
+
+
+                    repaint();
+                });
+
+
+                /*
+                    Beat grid
+                 */
+                for (int i = 0; i != playerGrid.getSlots().length; i++) {
+                    Slot slot = playerGrid.getSlots()[i];
+                    int tempI = i + 1;
+                    int x = playGridX * tempI + (playGridSize * tempI - playGridSize);
+
+                    Rectangle rect = new Rectangle(x + 2, playGridY, playGridSize, playGridSize);
+                    if (rect.contains(mouseX, mouseY)) {
+                        if (oneShotButton.isToggle()) {
+
+                            //todo: special amplitude render
+
+
+                            SlotAudio slotAudioWithType = SlotAudio.getWithType(soundLibrary.getSelectedSlotAudio(), tempI);
+
+                            if (!quantize.isToggle()) {
+                                if (slotAudioWithType != null) {
+                                    Plugin pluginWithPos = PluginManager.getInstance().getPluginWithPos(tempI);
+                                    audioPlayer.playSlotAudioWithPlugin(slotAudioWithType, pluginWithPos);
+                                }
+                            }
+
+                            if (quantize.isToggle()) {
+
+                                if (slotAudioWithType != null) {
+                                    shotList.add(slotAudioWithType);
+                                }
+
+                            }
+
+                        } else {
+                            slot.addSelectedSound(soundLibrary.getSelectedSlotAudio());
+                            soundLibrary.getSelectedSound().stopRreListen();
+
+                            audioPlayer.addAudio(soundLibrary.getSelectedSlotAudio(), i);
+                            amplitude.setWaveFormBufferChangeRender(true);
+                        }
+                        repaint();
+                        break;
+
+                    }
+                }
+                /*
+                    Sound-library
+                 */
+                for (int i = 0; i != soundLibrary.getFolderView().size(); i++) {
+
+                    Rectangle rect = new Rectangle(libraryX + libraryButtonWidth * i, libraryY - libraryButtonHeight, libraryButtonWidth, libraryButtonHeight);
+                    if (rect.contains(mouseX, mouseY)) {
+                        soundLibrary.setSelectedLibrary(i);
+                        repaint();
+                        break;
+                    }
+                }
+                /*
+                    Settings-button
+                 */
+                settingsButton.clickMouse(e, () -> {
+                    toggleSettingWindow();
+                    repaint();
+                });
+
+                /*
+                   Sound-list
+                */
+                for (String kordName : kordSlotList.keySet()) {
+                    Coordinates coordinates = kordSlotList.get(kordName);
+                    Rectangle kordListRect = new Rectangle(coordinates.getX(), coordinates.getY(), playGridSize, fontSize * 2);
+
+                    if (kordListRect.contains(mouseX, mouseY)) {
+                        kordSlotRemoveList.put(kordName, coordinates);
+                    }
+                }
+
+
+            }
+        };
+    }
+
 
 }

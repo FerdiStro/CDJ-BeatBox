@@ -5,6 +5,7 @@ import org.deepsymmetry.beatlink.*;
 import org.deepsymmetry.beatlink.data.*;
 import org.deepsymmetry.electro.Metronome;
 import org.main.audio.playegrid.ExtendedTrackMetaData;
+import org.main.audio.plugin.PluginManager;
 import org.main.settings.objects.CDJSettings;
 import org.main.settings.Settings;
 import org.main.util.Logger;
@@ -47,6 +48,9 @@ public class Main {
 
     private static void setUp() {
         SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss.SSS");
+
+
+        PluginManager.getInstance();
 
 
         BeatBoxWindow frame = BeatBoxWindow.getInstance();

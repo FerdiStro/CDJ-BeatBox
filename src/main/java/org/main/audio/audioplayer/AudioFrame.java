@@ -2,6 +2,7 @@ package org.main.audio.audioplayer;
 
 import lombok.Getter;
 import lombok.Setter;
+import org.main.audio.plugin.operation.Operation;
 
 import java.util.Arrays;
 
@@ -19,6 +20,11 @@ public class AudioFrame {
         channel_R = channelR;
     }
 
+
+    public void executeOperation(Operation operationL, Operation operationR) {
+        operationL.execute(channel_L);
+        operationR.execute(channel_R);
+    }
 
 
     public void muteChannel_L(){

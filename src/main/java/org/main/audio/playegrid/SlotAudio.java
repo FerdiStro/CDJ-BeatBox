@@ -5,6 +5,9 @@ import lombok.Getter;
 import org.main.BeatBoxWindow;
 import org.main.audio.library.TYPE;
 import org.main.audio.metadata.SlotAudioMetaData;
+import org.main.audio.plugin.PluginManager;
+import org.main.audio.plugin.model.Plugin;
+import org.main.util.Logger;
 
 import javax.sound.sampled.*;
 import java.io.File;
@@ -153,6 +156,12 @@ public class SlotAudio {
                     }
 
 
+                    if(playType == TYPE.PLUGIN_TYPE){
+                        Logger.notImplemented("Plugin not implement on old SlotAudio system. Change to AudioPlayer ");
+
+                    }
+
+
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -192,6 +201,34 @@ public class SlotAudio {
                 audioBytes[i+2] = (byte) ((sample >> 16) & 0xFF);
             }
         }
+    }
+
+    private static final int MIDI_ONE_BEAT_ID = 36;
+    private static final int MIDI_TWO_BEAT_ID = 37;
+    private static final int MIDI_FOUR_BEAT_ID = 38;
+
+    public static  SlotAudio getWithType(SlotAudio slotAudio, int i){
+        if (i == MIDI_ONE_BEAT_ID || i == 1) {
+            return new SlotAudio(slotAudio, TYPE.ONE_BEST);
+        }
+        if (i == MIDI_TWO_BEAT_ID || i == 2) {
+            return new SlotAudio(slotAudio, TYPE.TWO_BEAT);
+        }
+        if (i == MIDI_FOUR_BEAT_ID || i == 3) {
+            return new SlotAudio(slotAudio, TYPE.FOUR_BEAT);
+        }
+        PluginManager pluginManager = PluginManager.getInstance();
+
+        for (Plugin plugin : pluginManager.getPlugins()) {
+
+            if(i == plugin.getPosMIDI() ||  i == plugin.getPosPad() ){
+                return new SlotAudio(slotAudio, TYPE.PLUGIN_TYPE);
+            }
+        }
+
+
+        Logger.error("Unknown slot audio type");
+        return null;
     }
 
 }
