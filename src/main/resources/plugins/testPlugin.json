@@ -1,0 +1,19 @@
+{
+  "name": "test lol",
+  "streamManipulating": [
+    {
+      "startTime": 0.0,
+      "endTime": 20.0,
+      "channel_r": {
+        "kind": "multiply",
+        "value": 0.0
+      },
+      "channel_l": {
+        "kind": "none",
+        "value": 0.0
+      }
+    }
+  ],
+  "posPad": 4,
+  "posMIDI": 39
+}

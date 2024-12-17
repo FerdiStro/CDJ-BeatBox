@@ -1,6 +1,6 @@
 {
-  "MidiControllerName": "Arturia MiniLab mkII",
+  "MidiControllerName": "NO-Midi",
   "MidiControllerNameInit": "none",
-  "MidiControllerDisable": false,
+  "MidiControllerDisable": true,
   "MidiControllerDisableInit": true
 }

@@ -40,6 +40,8 @@ public class SettingsWindow extends JFrame {
     private final Button midiButton = new Button(new Coordinates(20, 20), new Dimension(buttonWidth, buttonHeight), "Midi");
     private final Button midiDisableButton =  new Button(new Coordinates(midiButton.getX(), getY() + buttonHeight * 3), new Font("Arial", Font.PLAIN, 16),"Disable");
 
+
+
     private final int midiX  = 40;
     private final int midiY  = 200;
     private final int midiHeight = 400;
@@ -54,6 +56,11 @@ public class SettingsWindow extends JFrame {
     private final int midiBlackKnobY2= midiY + 96;
     private boolean midiBlackKnob2 = false;
     private final SettingsDescribeFrame midiBlackKnob2SettingsFrame = new SettingsDescribeFrame( new Coordinates(midiBlackKnobX2, midiBlackKnobY2), "KNOB 2", "toggle-Mixer on/off", "Activate mixer for each slot, and switch between mixer and list of sound added to slot. ");
+
+
+
+
+
 
 
     protected static SettingsWindow getInstance() {
