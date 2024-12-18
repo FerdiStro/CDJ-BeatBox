@@ -152,11 +152,13 @@ public class Button extends AbstractComponent {
         }
     }
 
-    public void clickMouse(MouseEvent e, OnEvent onClick) {
+    @Override
+    public void clickEvent(MouseEvent e){
         int mouseX = e.getX();
         int mouseY = e.getY();
 
         Rectangle rectToggle = new Rectangle(getX(), getY(), getDimension().width, getDimension().height);
+
         if (rectToggle.contains(mouseX, mouseY)) {
 
             Color beforeChange = hoverColor;
@@ -173,10 +175,15 @@ public class Button extends AbstractComponent {
             if (stateButton) {
                 toggle();
             }
-            if (onClick != null) {
-                onClick.onEvent();
+            if (getComponentClickListener() != null) {
+                getComponentClickListener().onEvent();
             }
         }
+    }
+
+    public void clickMouse(MouseEvent e,OnEvent onEvent){
+        addClickListener(onEvent);
+        clickEvent(e);
     }
 
     @Setter
@@ -256,11 +263,7 @@ public class Button extends AbstractComponent {
 
         }
 
-        if(Logger.debugGraphics){
-            g2d.setColor(Color.BLACK);
-            g2d.drawLine(getX() + getDimension().width /2, getY(), getX()  + getDimension().width /2, getY() +  getDimension().height);
-            g2d.drawLine(getX(), getY() +  getDimension().height /2 , getX() +  getDimension().width, getY() + getDimension().height / 2);
-        }
+        Logger.drawMiddle(g2d, this, Color.black);
 
 
         g2d.setColor(colorBefore);
