@@ -7,6 +7,7 @@ import org.main.util.Logger;
 import org.main.util.graphics.components.button.OnEvent;
 
 import java.awt.*;
+import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.List;

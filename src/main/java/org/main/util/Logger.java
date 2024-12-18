@@ -13,7 +13,7 @@ public class Logger {
 
     private static final Boolean debug =  true;
 
-    public static final Boolean debugGraphics = true;
+    public static final Boolean debugGraphics = false;
 
 
 

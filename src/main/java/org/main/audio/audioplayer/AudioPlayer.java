@@ -6,6 +6,7 @@ import org.main.audio.PlayerGrid;
 import org.main.audio.library.TYPE;
 import org.main.audio.playegrid.Slot;
 import org.main.audio.playegrid.SlotAudio;
+import org.main.audio.plugin.model.Plugin;
 import org.main.util.Logger;
 import org.main.util.audio.AudioUtils;
 
@@ -72,7 +73,7 @@ public class AudioPlayer {
 
 
     public synchronized void play() {
-        this.playAudioInputStream(fullBeatAudioStream);
+        this.playAudioInputStream(fullBeatAudioStream, null);
     }
 
 
@@ -210,7 +211,21 @@ public class AudioPlayer {
         }
     }
 
-    public void playAudioInputStream(AudioInputStream audioInputStream) {
+    public void playSlotAudio(SlotAudio slotAudio){
+        File audioFile = slotAudio.getAudioFile();
+        AudioInputStream audioInputStream = getAudioInputStream(audioFile);
+        playAudioInputStream(audioInputStream, null);
+    }
+
+
+    public void playSlotAudioWithPlugin(SlotAudio slotAudio, Plugin plugin){
+        File audioFile = slotAudio.getAudioFile();
+        AudioInputStream audioInputStream = getAudioInputStream(audioFile);
+        playAudioInputStream(audioInputStream, plugin);
+    }
+
+
+    public void playAudioInputStream(AudioInputStream audioInputStream, Plugin plugin) {
         try {
             DataLine.Info info = new DataLine.Info(SourceDataLine.class, format);
 
@@ -237,7 +252,7 @@ public class AudioPlayer {
                     int validBytes = (bytesRead / frameSize) * frameSize;
                     if (validBytes > 0) {
 
-                        mutableStream.modifyData(buffer);
+                        mutableStream.modifyData(buffer, plugin);
 
                         sourceLine.write(buffer, 0, validBytes);
                     }
@@ -245,6 +260,7 @@ public class AudioPlayer {
                 sourceLine.drain();
                 sourceLine.close();
             });
+
             thread.start();
 
         } catch (Exception e) {
