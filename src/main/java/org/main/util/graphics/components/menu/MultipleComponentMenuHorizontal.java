@@ -2,7 +2,6 @@ package org.main.util.graphics.components.menu;
 
 import lombok.Getter;
 import lombok.Setter;
-import org.apache.commons.math3.analysis.function.Max;
 import org.main.util.Coordinates;
 import org.main.util.Logger;
 import org.main.util.graphics.components.AbstractComponent;
@@ -18,7 +17,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class MultipleComponentMenuHorizontal extends AbstractComponent {
@@ -27,9 +25,9 @@ public class MultipleComponentMenuHorizontal extends AbstractComponent {
     private Map<Rectangle, AbstractComponent> componentList =  new LinkedHashMap<>();
 
     @Setter
-    private Shadow shadow = null;
+    private Shadow shadow = new Shadow(0,0,0);
     @Setter
-    private Color backgroundColor = Color.BLACK;
+    private Color backgroundColor;
 
     public MultipleComponentMenuHorizontal(Coordinates coordinates, Dimension dimension, List<AbstractComponent> components) {
         super(coordinates, dimension);
@@ -71,6 +69,8 @@ public class MultipleComponentMenuHorizontal extends AbstractComponent {
     BufferedImage bufferedMenu = null;
 
     public void update(){
+
+
         BufferedImage bufferedImage =  new BufferedImage(getDimension().width + shadow.getOffsetX(), getDimension().height + shadow.getOffsetY(), BufferedImage.TYPE_INT_ARGB);
 
         Graphics2D g = bufferedImage.createGraphics();
@@ -208,6 +208,10 @@ public class MultipleComponentMenuHorizontal extends AbstractComponent {
     @Setter
     private int scrollSteps = 30;
 
+    @Getter
+    @Setter
+    private boolean disableScroll = false;
+
     @Override
     public void addClickListener(OnEvent componentClickListener){
         super.addClickListener(componentClickListener);
@@ -223,12 +227,13 @@ public class MultipleComponentMenuHorizontal extends AbstractComponent {
             update();
         }{
             g2d.drawImage(bufferedMenu, getX(), getY(), null);
+            if(disableScroll){
+                rightScroll.setRepositionAndSize(getX(), getY() + getDimension().height - buttonSize,buttonSize, buttonSize);
+                rightScroll.draw(g2d);
 
-            rightScroll.setRepositionAndSize(getX(), getY() + getDimension().height - buttonSize,buttonSize, buttonSize);
-            rightScroll.draw(g2d);
-
-            leftScroll.setRepositionAndSize(getX() + getDimension().width - buttonSize, getY() + getDimension().height - buttonSize,buttonSize, buttonSize);
-            leftScroll.draw(g2d);
+                leftScroll.setRepositionAndSize(getX() + getDimension().width - buttonSize, getY() + getDimension().height - buttonSize,buttonSize, buttonSize);
+                leftScroll.draw(g2d);
+            }
         }
 
 

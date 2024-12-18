@@ -9,6 +9,7 @@ import org.main.util.graphics.components.menu.CustomDropdown;
 import org.main.util.graphics.SettingsDescribeFrame;
 import org.main.util.Logger;
 import org.main.util.graphics.components.button.Button;
+import org.main.util.graphics.components.menu.MultipleComponentMenuHorizontal;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -17,6 +18,8 @@ import java.awt.event.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class SettingsWindow extends JFrame {
     private static SettingsWindow INSTANCE;
@@ -38,8 +41,7 @@ public class SettingsWindow extends JFrame {
         MIDI-MK2
      */
 
-    private final Button midiButton = new Button(new Coordinates(20, 20), new Dimension(buttonWidth, buttonHeight), "Midi");
-    private final Button midiDisableButton =  new Button(new Coordinates(midiButton.getX(), getY() + buttonHeight * 3), new Font("Arial", Font.PLAIN, 16),"Disable");
+    private final Button midiDisableButton =  new Button(new Coordinates(20, getY() + buttonHeight * 3), new Font("Arial", Font.PLAIN, 16),"Disable");
 
     private final int midiX  = 40;
     private final int midiY  = 200;
@@ -76,17 +78,39 @@ public class SettingsWindow extends JFrame {
         setSize(with, height);
         setResizable(false);
 
-
-
-
-        midiButton.setStateButton();
-        midiButton.setToggle(true);
-
         midiDisableButton.setStateButton();
         midiDisableButton.setToggle(Settings.getInstance().getMidiControllerSettings().isMidiControllerDisable());
         midiDisableButton.setToggleColorFullButton(true);
         midiDisableButton.setToggleColor(Color.red);
 
+        Button midiButton = new Button(new Coordinates(0, 0), new Dimension(buttonWidth, buttonHeight), "Midi");
+        midiButton.setStateButton();
+        midiButton.setToggle(true);
+        midiButton.setBackgroundColor(new Color(236, 236, 236, 255));
+        midiButton.setToggleColorFullButton(true);
+
+
+        Button plugin = new Button(new Coordinates(0, 0), new Dimension(buttonWidth + 10, buttonHeight), "Plugin");
+        plugin.setStateButton();
+        plugin.setBackgroundColor(new Color(236, 236, 236, 255));
+        plugin.setToggleColorFullButton(true);
+
+
+
+        List<AbstractComponent> buttonList = new ArrayList<>();
+        buttonList.add(midiButton);
+        buttonList.add(plugin);
+
+        MultipleComponentMenuHorizontal multipleComponentMenuHorizontal =  new MultipleComponentMenuHorizontal(new Coordinates(0, 0), new Dimension(with, 80), buttonList);
+
+        midiButton.addClickListener( ()-> {
+            plugin.setToggle(false);
+            repaint();
+        });
+        plugin.addClickListener( ()-> {
+            midiButton.setToggle(false);
+            repaint();
+        });
 
         BufferedImage midiMk2Device;
         BufferedImage midiMk2BlackNoble;
@@ -117,7 +141,9 @@ public class SettingsWindow extends JFrame {
 
                 g2d.setFont(font);
 
-                midiButton.draw(g2d);
+//                midiButton.draw(g2d);
+
+                multipleComponentMenuHorizontal.draw(g2d);
 
 
 
@@ -165,9 +191,9 @@ public class SettingsWindow extends JFrame {
             @Override
             public void mouseClicked(MouseEvent e) {
 
-                midiButton.clickMouse(e, () -> {
-                    repaint();
-                });
+                multipleComponentMenuHorizontal.clickEvent(e);
+
+
 
                 midiDisableButton.clickMouse(e, () -> {
                     Settings.getInstance().getMidiControllerSettings().setMidiControllerDisable(midiDisableButton.isToggle());
