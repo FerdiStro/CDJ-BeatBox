@@ -152,11 +152,13 @@ public class Button extends AbstractComponent {
         }
     }
 
-    public void clickMouse(MouseEvent e, OnEvent onClick) {
+    @Override
+    public void clickEvent(MouseEvent e){
         int mouseX = e.getX();
         int mouseY = e.getY();
 
         Rectangle rectToggle = new Rectangle(getX(), getY(), getDimension().width, getDimension().height);
+
         if (rectToggle.contains(mouseX, mouseY)) {
 
             Color beforeChange = hoverColor;
@@ -173,10 +175,15 @@ public class Button extends AbstractComponent {
             if (stateButton) {
                 toggle();
             }
-            if (onClick != null) {
-                onClick.onEvent();
+            if (getComponentClickListener() != null) {
+                getComponentClickListener().onEvent();
             }
         }
+    }
+
+    public void clickMouse(MouseEvent e,OnEvent onEvent){
+        addClickListener(onEvent);
+        clickEvent(e);
     }
 
     @Setter

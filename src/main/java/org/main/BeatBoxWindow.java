@@ -641,7 +641,6 @@ public class BeatBoxWindow extends JFrame {
                  */
 
 
-
                 bpmMinusButton.clickMouse(e, () -> {
                     if(!useWithoutCdj && !setupString){
                         VirtualCdj virtualCdj = VirtualCdj.getInstance();

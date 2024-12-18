@@ -4,6 +4,7 @@ package org.main.settings;
 import org.main.midi.MidiController;
 import org.main.util.Coordinates;
 import org.main.util.graphics.components.AbstractComponent;
+import org.main.util.graphics.components.button.OnEvent;
 import org.main.util.graphics.components.menu.CustomDropdown;
 import org.main.util.graphics.SettingsDescribeFrame;
 import org.main.util.Logger;
@@ -76,6 +77,8 @@ public class SettingsWindow extends JFrame {
         setResizable(false);
 
 
+
+
         midiButton.setStateButton();
         midiButton.setToggle(true);
 
@@ -145,9 +148,13 @@ public class SettingsWindow extends JFrame {
         };
 
 
-        dropdown.addClickListener(new AbstractComponent.ComponentClickListener() {
+        dropdown.addClickListener(new OnEvent() {
             @Override
-            public void onOptionClicked(String  transmitterName) {
+            public void onEvent() {
+
+            }
+            @Override
+            public void onEvent(String  transmitterName) {
                 Settings.getInstance().setMidiTransmitterName(transmitterName);
                 MidiController.getInstance(null).setTransmitter();
             }

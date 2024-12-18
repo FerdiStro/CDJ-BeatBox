@@ -4,9 +4,15 @@ import lombok.Getter;
 import lombok.Setter;
 import org.main.util.Coordinates;
 import org.main.util.Logger;
+import org.main.util.graphics.components.button.OnEvent;
 
 import java.awt.*;
 import java.awt.event.MouseEvent;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.ListIterator;
+import java.util.Timer;
+import java.util.TimerTask;
 
 
 @Getter
@@ -40,30 +46,36 @@ public abstract class AbstractComponent {
 
     public void setX(int x){
         coordinates.setX(x);
+        this.x = x;
     }
 
     public void setY(int y){
         coordinates.setY(y);
+        this.y = y;
     }
 
     public void clickEvent(MouseEvent e){
-    }
-
-    public void clickMethode(String options){
         if(this.componentClickListener != null){
-            this.componentClickListener.onOptionClicked(options);
+                componentClickListener.onEvent();
         }else {
             Logger.error("Component ClickListener is null");
         }
     }
 
-    public interface ComponentClickListener {
-        void onOptionClicked(String options);
+    public void clickMethode(String options){
+        if(this.componentClickListener != null){
+            this.componentClickListener.onEvent(options);
+
+        }else {
+            Logger.error("Component ClickListener is null");
+        }
     }
 
-    private ComponentClickListener componentClickListener;
 
-    public void addClickListener(ComponentClickListener componentClickListener){
+
+    private OnEvent componentClickListener;
+
+    public void addClickListener(OnEvent componentClickListener){
         this.componentClickListener = componentClickListener;
     }
 
@@ -85,6 +97,20 @@ public abstract class AbstractComponent {
         setDimension(new Dimension(width, height));
     }
 
+
+    private final List<ComponentObserver> componentObserverList =  new ArrayList<>();
+
+    public void addObserver(ComponentObserver componentObserver){
+        componentObserverList.add(componentObserver);
+    }
+
+    public void removeObserver(ComponentObserver componentObserver){
+        componentObserverList.remove(componentObserver);
+    }
+
+    public void updateAllObserver(){
+        componentObserverList.forEach(ComponentObserver::update);
+    }
 
 
 }
