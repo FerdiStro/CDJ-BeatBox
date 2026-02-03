@@ -3,6 +3,7 @@ package MinimalRunner;
 import org.deepsymmetry.beatlink.DeviceFinder;
 import org.main.util.Logger;
 
+import java.net.NetworkInterface;
 import java.net.SocketException;
 
 import static java.lang.Thread.sleep;
@@ -36,9 +37,13 @@ public class Main {
             } catch (InterruptedException e) {
                 Logger.error(e.toString());
             }
+            Logger.info("Devices found");
         }
 
-        Logger.info("Devices found");
+
+
+
+
 
     }
 }
