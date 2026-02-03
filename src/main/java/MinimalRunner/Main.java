@@ -67,39 +67,40 @@ public class Main {
             Logger.error("No Device Found");
             return;
         }
+        while(true) {
 
-        System.out.println("--- Devices: ---");
-        for (DeviceAnnouncement currentDevice : deviceFinder.getCurrentDevices()) {
-            System.out.println("Device: " + currentDevice.getName());
-            System.out.println("  - InetAddress: " + currentDevice.getAddress());
-            System.out.println("  - Number: " + currentDevice.getDeviceNumber());
-        }
-        System.out.println("--------------------------");
-
-
-        Logger.info("Start Virtual Device");
-        VirtualCdj cdj = VirtualCdj.getInstance();
-        cdj.setDeviceNumber((byte) 4);
-
-        cdj.start();
-        cdj.setSynced(true);
-        cdj.setPlaying(true);
-        cdj.setSendingStatus(true);
-
-
-        BeatFinder beatFinder = BeatFinder.getInstance();
-
-        beatFinder.addBeatListener(new BeatListener() {
-            @Override
-            public void newBeat(Beat beat) {
-                System.out.println("_________________");
-                System.out.println("Beat");
-                System.out.println("    -BPM" + beat.getBpm());
-                System.out.println("    -Dev-Name" + beat.getDeviceName());
-                System.out.println("    -Next-Bar" + beat.getNextBar());
-                System.out.println("_________________");
+            System.out.println("--- Devices: ---");
+            for (DeviceAnnouncement currentDevice : deviceFinder.getCurrentDevices()) {
+                System.out.println("Device: " + currentDevice.getName());
+                System.out.println("  - InetAddress: " + currentDevice.getAddress());
+                System.out.println("  - Number: " + currentDevice.getDeviceNumber());
             }
-        });
+            System.out.println("--------------------------");
 
+
+            Logger.info("Start Virtual Device");
+            VirtualCdj cdj = VirtualCdj.getInstance();
+            cdj.setDeviceNumber((byte) 4);
+
+            cdj.start();
+            cdj.setSynced(true);
+            cdj.setPlaying(true);
+            cdj.setSendingStatus(true);
+
+
+            BeatFinder beatFinder = BeatFinder.getInstance();
+
+            beatFinder.addBeatListener(new BeatListener() {
+                @Override
+                public void newBeat(Beat beat) {
+                    System.out.println("_________________");
+                    System.out.println("Beat");
+                    System.out.println("    -BPM" + beat.getBpm());
+                    System.out.println("    -Dev-Name" + beat.getDeviceName());
+                    System.out.println("    -Next-Bar" + beat.getNextBar());
+                    System.out.println("_________________");
+                }
+            });
+        }
     }
 }
