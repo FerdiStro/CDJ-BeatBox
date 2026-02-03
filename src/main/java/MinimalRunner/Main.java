@@ -1,11 +1,14 @@
 package MinimalRunner;
 
 import org.deepsymmetry.beatlink.*;
+import org.main.settings.Settings;
 import org.main.util.Logger;
 
 import java.net.NetworkInterface;
 import java.net.SocketException;
 import java.util.Enumeration;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import static java.lang.Thread.sleep;
 
@@ -67,7 +70,7 @@ public class Main {
             Logger.error("No Device Found");
             return;
         }
-        while(true) {
+
 
             System.out.println("--- Devices: ---");
             for (DeviceAnnouncement currentDevice : deviceFinder.getCurrentDevices()) {
@@ -101,6 +104,16 @@ public class Main {
                     System.out.println("_________________");
                 }
             });
-        }
+
+
+        new Timer().scheduleAtFixedRate(new TimerTask() {
+            @Override
+            public void run() {
+                System.out.println("Hold Thread open");
+            }
+        }, 0, 200000);
+
+
     }
+
 }
