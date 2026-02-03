@@ -42,7 +42,7 @@ public class Main {
 
         DeviceFinder deviceFinder = DeviceFinder.getInstance();
 
-        while (unattempted < 10 || deviceFound) {
+        while (unattempted < 10 || !deviceFound) {
             Logger.debug("Attempt to find Device. Attemp: " + unattempted);
             try {
 
