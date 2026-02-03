@@ -54,7 +54,6 @@ public class Main {
                 if (!deviceFinder.getCurrentDevices().isEmpty()) {
                     deviceFound = true;
                     Logger.info("Devices found");
-                    return;
                 }
                 //Nothing found
                 unattempted++;
@@ -104,16 +103,6 @@ public class Main {
                     System.out.println("_________________");
                 }
             });
-
-
-        new Timer().scheduleAtFixedRate(new TimerTask() {
-            @Override
-            public void run() {
-                System.out.println("Hold Thread open");
-            }
-        }, 0, 200000);
-
-
     }
 
 }
