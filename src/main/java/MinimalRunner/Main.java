@@ -87,10 +87,15 @@ public class Main {
             cdj.start();
             cdj.setSynced(true);
             cdj.setPlaying(true);
+
+
             cdj.setSendingStatus(true);
 
 
-            BeatFinder beatFinder = BeatFinder.getInstance();
+        Logger.info("Add Beat Listener");
+
+
+        BeatFinder beatFinder = BeatFinder.getInstance();
 
             beatFinder.addBeatListener(new BeatListener() {
                 @Override
@@ -103,6 +108,15 @@ public class Main {
                     System.out.println("_________________");
                 }
             });
+
+        new Timer().scheduleAtFixedRate(new TimerTask() {
+            @Override
+            public void run() {
+             Logger.info("Keep open");
+            }
+        }, 0, 10000);
+
+
     }
 
 }
